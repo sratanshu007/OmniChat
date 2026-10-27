@@ -6,7 +6,7 @@
     "start": "expo start -c",
     "android": "expo start --android -c",
     "ios": "expo start --ios -c",
-    "postinstall": "mkdir -p node_modules/expo/node_modules && ln -sf ../../expo-asset node_modules/expo/node_modules/expo-asset && ln -sf ../../expo-font node_modules/expo/node_modules/expo-font"
+    "postinstall": "mkdir -p node_modules/expo/node_modules && ln -sf ../../expo-asset node_modules/expo/node_modules/expo-asset && ln -sf ../../expo-font node_modules/expo/node_modules/expo-font && echo \"module.exports = require('./primitives/index');\" > node_modules/expo-router/build/primitives.js"
   },
   "dependencies": {
     "expo": "~57.0.31",

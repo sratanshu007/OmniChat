@@ -10,11 +10,15 @@ config.resolver.useWatchman = false;
 const originalResolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (
-    moduleName === '@expo/log-box' ||
-    moduleName === '@expo/log-box/lib' ||
-    moduleName.startsWith('@expo/log-box/lib') ||
-    (context.originModulePath && context.originModulePath.includes('@expo/log-box') && moduleName.includes('index'))
+    moduleName.startsWith('@expo/log-box') ||
+    (context.originModulePath && context.originModulePath.includes('@expo/log-box'))
   ) {
+    if (moduleName.endsWith('/utils') || moduleName.endsWith('utils.js')) {
+      return {
+        type: 'sourceFile',
+        filePath: path.resolve(__dirname, 'node_modules/@expo/log-box/utils.js'),
+      };
+    }
     return {
       type: 'sourceFile',
       filePath: path.resolve(__dirname, 'node_modules/@expo/log-box/lib.js'),
