@@ -19,7 +19,7 @@ export default function MeScreen() {
           <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
           <View style={styles.profileText}>
             <Text style={styles.displayName}>{user.displayName}</Text>
-            <Text style={styles.wechatId}>WeChat ID: {user.username}</Text>
+            <Text style={styles.wechatId}>UPI ID: {user.upiId}</Text>
             <Text style={styles.region}>📍 {user.region}</Text>
           </View>
 
@@ -31,7 +31,7 @@ export default function MeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* WeChat Pay Services Row */}
+        {/* OmniPay Wallet Services Row */}
         <View style={styles.groupCard}>
           <TouchableOpacity
             style={styles.row}
@@ -41,23 +41,23 @@ export default function MeScreen() {
             <View style={[styles.iconBox, { backgroundColor: Colors.light.primary }]}>
               <CreditCard size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Services / WeChat Pay (微信支付)</Text>
-            <Text style={styles.balanceText}>¥{walletBalanceFormatted}</Text>
+            <Text style={styles.rowLabel}>OmniPay & UPI Wallet</Text>
+            <Text style={styles.balanceText}>₹{walletBalanceFormatted}</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
 
-        {/* Favorites & Moments */}
+        {/* Starred & Moments */}
         <View style={styles.groupCard}>
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
-            onPress={() => Alert.alert('Favorites (收藏)', 'Your saved messages, articles, and voice notes')}
+            onPress={() => Alert.alert('Saved Items', 'Your saved messages, receipts, and starred notes')}
           >
             <View style={[styles.iconBox, { backgroundColor: '#F59E0B' }]}>
               <Bookmark size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Favorites (收藏)</Text>
+            <Text style={styles.rowLabel}>Saved & Starred Messages</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
@@ -69,19 +69,19 @@ export default function MeScreen() {
             <View style={[styles.iconBox, { backgroundColor: '#3B82F6' }]}>
               <ImageIcon size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>My Posts & Moments (相册)</Text>
+            <Text style={styles.rowLabel}>My Moments & Photos</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
-            onPress={() => Alert.alert('Sticker Gallery (表情包)', 'Custom animated stickers and memes')}
+            onPress={() => Alert.alert('Stickers & Memes', 'Desi animated stickers, GIF packs, and reactions')}
           >
             <View style={[styles.iconBox, { backgroundColor: '#EC4899' }]}>
               <Smile size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Sticker Gallery (表情包)</Text>
+            <Text style={styles.rowLabel}>Sticker & Meme Gallery</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
@@ -91,12 +91,12 @@ export default function MeScreen() {
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
-            onPress={() => Alert.alert('Settings', 'Account security, notifications, and language (English / 简体中文)')}
+            onPress={() => Alert.alert('Settings', 'Account security, UPI PIN, notifications, and English language preferences')}
           >
             <View style={[styles.iconBox, { backgroundColor: '#64748B' }]}>
               <Settings size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Settings (设置)</Text>
+            <Text style={styles.rowLabel}>Settings & Privacy</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>

@@ -35,8 +35,8 @@ export function MyQrCard({ user, qrToken, onRefresh }: MyQrCardProps) {
         />
         <View style={styles.profileInfo}>
           <Text style={styles.displayName}>{user.displayName}</Text>
-          <Text style={styles.username}>WeChat ID: {user.username}</Text>
-          <Text style={styles.region}>📍 {user.region || 'Global'}</Text>
+          <Text style={styles.username}>OmniChat ID: @{user.username}</Text>
+          <Text style={styles.region}>📍 {user.region || 'India'}</Text>
         </View>
       </View>
 

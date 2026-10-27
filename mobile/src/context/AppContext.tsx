@@ -6,6 +6,7 @@ export interface UserProfile {
   id: string;
   displayName: string;
   username: string;
+  upiId: string;
   avatarUrl: string;
   region: string;
   bio: string;
@@ -23,7 +24,7 @@ export interface ChatMessage {
   type: 'TEXT' | 'IMAGE' | 'VOICE' | 'RED_PACKET' | 'TRANSFER';
   createdAt: string;
   metadata?: {
-    amountCents?: number;
+    amountRupees?: number;
     greeting?: string;
     isClaimed?: boolean;
     claimedBy?: string;
@@ -49,6 +50,7 @@ export interface Contact {
   id: string;
   displayName: string;
   username: string;
+  upiId: string;
   avatarUrl: string;
   region: string;
   signature: string;
@@ -97,10 +99,10 @@ interface AppContextType {
   activeCall: CallState | null;
   serverUrl: string;
   sendMessage: (convId: string, content: string, type?: 'TEXT' | 'IMAGE' | 'VOICE', meta?: any) => void;
-  sendRedPacket: (convId: string, amountYuan: number, greeting: string) => void;
+  sendRedPacket: (convId: string, amountRupees: number, greeting: string) => void;
   claimRedPacket: (convId: string, messageId: string) => void;
-  sendTransfer: (convId: string, amountYuan: number, note: string) => void;
-  topUpWallet: (amountYuan: number) => void;
+  sendTransfer: (convId: string, amountRupees: number, note: string) => void;
+  topUpWallet: (amountRupees: number) => void;
   postMoment: (content: string, imageUrl?: string) => void;
   likeMoment: (momentId: string) => void;
   addMomentComment: (momentId: string, text: string) => void;
@@ -112,7 +114,6 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-// Detect Local Backend Host dynamically for Expo Go on physical phones or simulators
 function getBackendHost() {
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
@@ -130,46 +131,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const serverUrl = getBackendHost();
 
   const [user, setUser] = useState<UserProfile>({
-    id: 'user_me_001',
-    displayName: 'Alex Chen (陈博)',
-    username: 'alex_chen',
+    id: 'user_aarav',
+    displayName: 'Aarav Sharma',
+    username: 'aarav_sharma',
+    upiId: 'aarav@omnichat',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-    region: 'Shenzhen, Guangdong',
-    bio: 'Architecting next-gen SuperApps 🚀 | WeChat Clone',
-    phone: '+86 138 0000 8888'
+    region: 'Bengaluru, Karnataka',
+    bio: 'Software Architect building Indian SuperApps 🇮🇳 🚀',
+    phone: '+91 98765 43210'
   });
 
-  const [walletBalance, setWalletBalance] = useState<number>(188850); // in cents => 1,888.50 CNY
+  const [walletBalance, setWalletBalance] = useState<number>(245000); // In paise => ₹2,450.00
 
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([
     {
       id: 'tx_1',
-      title: '🧧 Received Lucky Money (WeChat Red Packet)',
-      amountFormatted: '+¥88.88',
+      title: '🎁 Received Shagun Gift Envelope',
+      amountFormatted: '+₹501.00',
       isPositive: true,
-      type: 'RED_PACKET',
+      type: 'GIFT_ENVELOPE',
       date: 'Today 14:20'
     },
     {
       id: 'tx_2',
-      title: '☕ Manner Coffee via Mini Program',
-      amountFormatted: '-¥32.00',
+      title: '☕ Filter Coffee & Dosa via Mini Program',
+      amountFormatted: '-₹180.00',
       isPositive: false,
       type: 'MINI_APP_PURCHASE',
       date: 'Today 10:15'
     },
     {
       id: 'tx_3',
-      title: '💳 Bank Card Top-Up (ICBC)',
-      amountFormatted: '+¥1,000.00',
+      title: '💳 UPI Bank Account Top-Up (HDFC Bank)',
+      amountFormatted: '+₹2,000.00',
       isPositive: true,
       type: 'TOP_UP',
       date: 'Yesterday 18:30'
     },
     {
       id: 'tx_4',
-      title: '🚕 OmniRide Taxi Booking',
-      amountFormatted: '-¥45.50',
+      title: '🚖 OmniRide Cab Booking',
+      amountFormatted: '-₹340.00',
       isPositive: false,
       type: 'RIDE_PAY',
       date: 'Oct 25 21:05'
@@ -178,151 +180,155 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [friends, setFriends] = useState<Contact[]>([
     {
-      id: 'user_emma',
-      displayName: 'Emma Watson',
-      username: 'emma_w',
+      id: 'user_priya',
+      displayName: 'Priya Patel',
+      username: 'priya_p',
+      upiId: 'priya@okhdfcbank',
       avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160',
-      region: 'London, UK',
-      signature: 'Keep smiling, tomorrow is a brand new day 🌸',
-      phone: '+44 7911 123456'
+      region: 'Mumbai, Maharashtra',
+      signature: 'Life is too short for bad chai ☕✨',
+      phone: '+91 98200 11223'
     },
     {
-      id: 'user_wei',
-      displayName: 'Wei Zhang (张伟)',
-      username: 'weizhang',
+      id: 'user_rohan',
+      displayName: 'Rohan Verma',
+      username: 'rohan_v',
+      upiId: 'rohan@okaxis',
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160',
-      region: 'Beijing, China',
-      signature: 'Tech & Coffee lover ☕💻',
-      phone: '+86 139 1234 5678'
+      region: 'New Delhi',
+      signature: 'Tech, Cricket & Code 🏏💻',
+      phone: '+91 98111 22334'
     },
     {
-      id: 'user_sophia',
-      displayName: 'Sophia Liu (刘雅)',
-      username: 'sophia_liu',
+      id: 'user_neha',
+      displayName: 'Neha Gupta',
+      username: 'neha_g',
+      upiId: 'neha@icici',
       avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=160',
-      region: 'Shanghai, China',
-      signature: 'Foodie exploring the world 🍜🍣',
-      phone: '+86 137 9876 5432'
+      region: 'Hyderabad, Telangana',
+      signature: 'Biryani lover and UI Designer 🎨🍛',
+      phone: '+91 99887 76655'
     },
     {
-      id: 'user_david',
-      displayName: 'David Miller',
-      username: 'david_m',
+      id: 'user_vikram',
+      displayName: 'Vikram Singh',
+      username: 'vikram_s',
+      upiId: 'vikram@sbi',
       avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=160',
-      region: 'Singapore',
-      signature: 'Always learning something new 🚀',
-      phone: '+65 9123 4567'
+      region: 'Jaipur, Rajasthan',
+      signature: 'Exploring India one road trip at a time 🚗',
+      phone: '+91 97654 32100'
     }
   ]);
 
   const [friendRequests, setFriendRequests] = useState<any[]>([
     {
       id: 'req_1',
-      senderId: 'user_grace',
-      senderName: 'Grace Hopper (王玲)',
+      senderId: 'user_ananya',
+      senderName: 'Ananya Sharma',
       senderAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160',
-      message: 'Hi Alex! Scanned your WeChat QR card from tech meetup.',
-      time: '10 mins ago'
+      message: 'Hi Aarav! Scanned your OmniChat QR at the Bengaluru Tech Summit.',
+      time: '15 mins ago'
     }
   ]);
 
   const [conversations, setConversations] = useState<Conversation[]>([
     {
-      id: 'conv_emma',
-      title: 'Emma Watson',
+      id: 'conv_priya',
+      title: 'Priya Patel',
       avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160',
       isGroup: false,
       isPinned: true,
       unreadCount: 0,
-      lastMessageText: '🧧 [WeChat Red Packet] Best Wishes!',
+      lastMessageText: '🎁 [Gift Envelope] Best Wishes & Good Luck!',
       lastMessageAt: '14:20',
-      partnerId: 'user_emma'
+      partnerId: 'user_priya'
     },
     {
-      id: 'conv_wei',
-      title: 'Wei Zhang (张伟)',
+      id: 'conv_rohan',
+      title: 'Rohan Verma',
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160',
       isGroup: false,
       isPinned: false,
       unreadCount: 1,
-      lastMessageText: 'Are you joining the group call tonight?',
+      lastMessageText: 'Are you coming for the cricket match screening?',
       lastMessageAt: '12:45',
-      partnerId: 'user_wei'
+      partnerId: 'user_rohan'
     },
     {
       id: 'conv_group',
-      title: 'OmniChat Core Builders 🚀',
+      title: 'Indian SuperApp Builders 🇮🇳',
       avatarUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=160',
       isGroup: true,
       isPinned: false,
       unreadCount: 3,
-      lastMessageText: 'Sophia: Just tested the QR code sharing feature!',
+      lastMessageText: 'Neha: Tested the UPI QR code payments in Expo Go!',
       lastMessageAt: '11:10',
       partnerId: 'group_core'
     },
     {
-      id: 'conv_sophia',
-      title: 'Sophia Liu (刘雅)',
+      id: 'conv_neha',
+      title: 'Neha Gupta',
       avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=160',
       isGroup: false,
       isPinned: false,
       unreadCount: 0,
-      lastMessageText: 'See you at the mini program demo.',
+      lastMessageText: 'Will share the design mockups in 10 mins.',
       lastMessageAt: 'Yesterday',
-      partnerId: 'user_sophia'
+      partnerId: 'user_neha'
     }
   ]);
 
   const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({
-    conv_emma: [
+    conv_priya: [
       {
-        id: 'msg_e1',
-        conversationId: 'conv_emma',
-        senderId: 'user_emma',
-        senderName: 'Emma Watson',
+        id: 'msg_p1',
+        conversationId: 'conv_priya',
+        senderId: 'user_priya',
+        senderName: 'Priya Patel',
         senderAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160',
         isMe: false,
-        content: 'Hi Alex! How is the new OmniChat mobile build going?',
+        content: 'Hi Aarav! How is the new OmniChat mobile build working on Expo Go?',
         type: 'TEXT',
         createdAt: '14:15'
       },
       {
-        id: 'msg_e2',
-        conversationId: 'conv_emma',
-        senderId: 'user_me_001',
-        senderName: 'Alex Chen',
+        id: 'msg_p2',
+        conversationId: 'conv_priya',
+        senderId: 'user_aarav',
+        senderName: 'Aarav Sharma',
         senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
         isMe: true,
-        content: 'It is amazing! Red packets, voice calls, moments and mini apps are all working in Expo Go!',
+        content: 'It works seamlessly! Clean English UI, UPI payments, voice notes, and calls are running on SDK 57!',
         type: 'TEXT',
         createdAt: '14:17'
       },
       {
-        id: 'msg_e3',
-        conversationId: 'conv_emma',
-        senderId: 'user_emma',
-        senderName: 'Emma Watson',
+        id: 'msg_p3',
+        conversationId: 'conv_priya',
+        senderId: 'user_priya',
+        senderName: 'Priya Patel',
         senderAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160',
         isMe: false,
-        content: '🧧 WeChat Red Packet',
+        content: '🎁 Shagun Gift Envelope',
         type: 'RED_PACKET',
         createdAt: '14:20',
         metadata: {
-          amountCents: 8888,
-          greeting: 'Best Wishes & Great Success! 🧧🎉',
+          amountRupees: 501,
+          greeting: 'Best Wishes & Great Success! 🎁✨',
           isClaimed: false
         }
       }
     ],
-    conv_wei: [
+    conv_rohan: [
       {
-        id: 'msg_w1',
-        conversationId: 'conv_wei',
-        senderId: 'user_wei',
-        senderName: 'Wei Zhang',
+        id: 'msg_r1',
+        conversationId: 'conv_rohan',
+        senderId: 'user_rohan',
+        senderName: 'Rohan Verma',
         senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160',
         isMe: false,
-        content: 'Are you joining the group call tonight?',
+        content: 'Are you coming for the cricket match screening?',
         type: 'TEXT',
         createdAt: '12:45'
       }
@@ -331,24 +337,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       {
         id: 'msg_g1',
         conversationId: 'conv_group',
-        senderId: 'user_sophia',
-        senderName: 'Sophia Liu',
+        senderId: 'user_neha',
+        senderName: 'Neha Gupta',
         senderAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=160',
         isMe: false,
-        content: 'Just tested the QR code sharing feature!',
+        content: 'Tested the UPI QR code payments in Expo Go!',
         type: 'TEXT',
         createdAt: '11:10'
       }
     ],
-    conv_sophia: [
+    conv_neha: [
       {
-        id: 'msg_s1',
-        conversationId: 'conv_sophia',
-        senderId: 'user_sophia',
-        senderName: 'Sophia Liu',
+        id: 'msg_n1',
+        conversationId: 'conv_neha',
+        senderId: 'user_neha',
+        senderName: 'Neha Gupta',
         senderAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=160',
         isMe: false,
-        content: 'See you at the mini program demo.',
+        content: 'Will share the design mockups in 10 mins.',
         type: 'TEXT',
         createdAt: 'Yesterday'
       }
@@ -358,38 +364,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [moments, setMoments] = useState<MomentPost[]>([
     {
       id: 'post_1',
-      authorId: 'user_emma',
-      authorName: 'Emma Watson',
+      authorId: 'user_priya',
+      authorName: 'Priya Patel',
       authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160',
-      content: 'Beautiful sunset in London today! 🌅 Reminds me how important it is to pause and breathe.',
+      content: 'Chilly morning walk at Marine Drive, Mumbai! 🌊 The sea breeze here is unmatched.',
       mediaUrls: [
         'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600'
       ],
       createdAt: '1 hour ago',
-      likes: ['Alex Chen (陈博)', 'Wei Zhang (张伟)', 'Sophia Liu (刘雅)'],
+      likes: ['Aarav Sharma', 'Rohan Verma', 'Neha Gupta'],
       comments: [
-        { id: 'c1', authorName: 'Alex Chen', text: 'Stunning view! 👏' },
-        { id: 'c2', authorName: 'Wei Zhang', text: 'Have a great evening!' }
+        { id: 'c1', authorName: 'Aarav Sharma', text: 'Stunning view of Mumbai! 👏' },
+        { id: 'c2', authorName: 'Rohan Verma', text: 'Enjoy your morning!' }
       ]
     },
     {
       id: 'post_2',
-      authorId: 'user_sophia',
-      authorName: 'Sophia Liu (刘雅)',
+      authorId: 'user_neha',
+      authorName: 'Neha Gupta',
       authorAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=160',
-      content: 'Exploring the new artisanal bakery in downtown. The matcha croissant is definitely worth the hype! 🥐🍵',
+      content: 'Authentic Hyderabadi Dum Biryani with the team today! Weekend vibes starting early 🍛✨',
       mediaUrls: [
         'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600'
       ],
       createdAt: '3 hours ago',
-      likes: ['Alex Chen (陈博)'],
+      likes: ['Aarav Sharma'],
       comments: []
     }
   ]);
 
   const [activeCall, setActiveCall] = useState<CallState | null>(null);
 
-  // Call timer simulation
   useEffect(() => {
     let interval: any = null;
     if (activeCall && activeCall.status === 'connected') {
@@ -419,7 +424,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       [convId]: [...(prev[convId] || []), newMsg]
     }));
 
-    // Update conversation preview
     setConversations(prev =>
       prev.map(c => {
         if (c.id === convId) {
@@ -433,14 +437,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    // Simulated buddy echo response after 1.5s for lively interaction
     setTimeout(() => {
       const buddyAnswers = [
-        'Got it! Looking great on mobile 👍',
-        'Haha totally agree! 😄',
-        'Awesome, testing with you right now!',
-        'Super smooth WeChat style animations!',
-        'Checked! Let us do a video call in a minute.'
+        'Got it! Looking super clean and fast 👍',
+        'Haha totally agree! Great work 😄',
+        'Awesome, testing UPI and chats with you right now!',
+        'Love the new Indian English interface!',
+        'Checked! Let us do a quick call in a minute.'
       ];
       const randomText = buddyAnswers[Math.floor(Math.random() * buddyAnswers.length)];
       const targetConv = conversations.find(c => c.id === convId);
@@ -471,28 +474,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 1500);
   };
 
-  const sendRedPacket = (convId: string, amountYuan: number, greeting: string) => {
-    const amountCents = Math.round(amountYuan * 100);
-    if (walletBalance < amountCents) {
-      alert('Insufficient wallet balance! Please top up first.');
+  const sendRedPacket = (convId: string, amountRupees: number, greeting: string) => {
+    const amountPaise = Math.round(amountRupees * 100);
+    if (walletBalance < amountPaise) {
+      alert('Insufficient wallet balance! Please top up via UPI.');
       return;
     }
 
-    // Deduct wallet
-    setWalletBalance(prev => prev - amountCents);
+    setWalletBalance(prev => prev - amountPaise);
     setWalletTransactions(prev => [
       {
         id: 'tx_' + Date.now(),
-        title: `🧧 Sent Red Packet (${greeting})`,
-        amountFormatted: `-¥${amountYuan.toFixed(2)}`,
+        title: `🎁 Sent Gift Envelope (${greeting})`,
+        amountFormatted: `-₹${amountRupees.toFixed(2)}`,
         isPositive: false,
-        type: 'RED_PACKET_SENT',
+        type: 'GIFT_SENT',
         date: 'Just now'
       },
       ...prev
     ]);
 
-    // Send Red Packet Message
     const newMsg: ChatMessage = {
       id: 'msg_rp_' + Date.now(),
       conversationId: convId,
@@ -500,12 +501,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       senderName: user.displayName,
       senderAvatar: user.avatarUrl,
       isMe: true,
-      content: '🧧 WeChat Red Packet',
+      content: '🎁 Shagun Gift Envelope',
       type: 'RED_PACKET',
       createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       metadata: {
-        amountCents,
-        greeting: greeting || 'Gong Xi Fa Cai! 🧧',
+        amountRupees,
+        greeting: greeting || 'Best Wishes & Good Luck! 🎁',
         isClaimed: false
       }
     };
@@ -518,7 +519,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setConversations(prev =>
       prev.map(c =>
         c.id === convId
-          ? { ...c, lastMessageText: `🧧 [Red Packet] ${greeting || 'Best Wishes'}`, lastMessageAt: 'Just now' }
+          ? { ...c, lastMessageText: `🎁 [Gift Envelope] ${greeting || 'Best Wishes'}`, lastMessageAt: 'Just now' }
           : c
       )
     );
@@ -529,10 +530,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const msg = convMsgs.find(m => m.id === messageId);
     if (!msg || !msg.metadata || msg.metadata.isClaimed) return;
 
-    const claimedCents = msg.metadata.amountCents || 8888;
-    setWalletBalance(prev => prev + claimedCents);
+    const claimedRupees = msg.metadata.amountRupees || 501;
+    const claimedPaise = Math.round(claimedRupees * 100);
+    setWalletBalance(prev => prev + claimedPaise);
 
-    // Update message state
     setMessages(prev => ({
       ...prev,
       [convId]: (prev[convId] || []).map(m =>
@@ -549,34 +550,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       )
     }));
 
-    // Record transaction
-    const yuanStr = (claimedCents / 100).toFixed(2);
     setWalletTransactions(prev => [
       {
         id: 'tx_' + Date.now(),
-        title: `🧧 Claimed Red Packet from ${msg.senderName}`,
-        amountFormatted: `+¥${yuanStr}`,
+        title: `🎁 Claimed Gift Envelope from ${msg.senderName}`,
+        amountFormatted: `+₹${claimedRupees.toFixed(2)}`,
         isPositive: true,
-        type: 'RED_PACKET_CLAIMED',
+        type: 'GIFT_CLAIMED',
         date: 'Just now'
       },
       ...prev
     ]);
   };
 
-  const sendTransfer = (convId: string, amountYuan: number, note: string) => {
-    const amountCents = Math.round(amountYuan * 100);
-    if (walletBalance < amountCents) {
+  const sendTransfer = (convId: string, amountRupees: number, note: string) => {
+    const amountPaise = Math.round(amountRupees * 100);
+    if (walletBalance < amountPaise) {
       alert('Insufficient wallet balance!');
       return;
     }
 
-    setWalletBalance(prev => prev - amountCents);
+    setWalletBalance(prev => prev - amountPaise);
     setWalletTransactions(prev => [
       {
         id: 'tx_' + Date.now(),
-        title: `💸 WeChat Transfer: ${note || 'Direct Transfer'}`,
-        amountFormatted: `-¥${amountYuan.toFixed(2)}`,
+        title: `💸 UPI Transfer: ${note || 'Direct Payment'}`,
+        amountFormatted: `-₹${amountRupees.toFixed(2)}`,
         isPositive: false,
         type: 'TRANSFER_SENT',
         date: 'Just now'
@@ -591,11 +590,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       senderName: user.displayName,
       senderAvatar: user.avatarUrl,
       isMe: true,
-      content: `💸 WeChat Transfer: ¥${amountYuan.toFixed(2)}`,
+      content: `💸 UPI Transfer: ₹${amountRupees.toFixed(2)}`,
       type: 'TRANSFER',
       createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       metadata: {
-        amountCents,
+        amountRupees,
         note
       }
     };
@@ -606,14 +605,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   };
 
-  const topUpWallet = (amountYuan: number) => {
-    const amountCents = Math.round(amountYuan * 100);
-    setWalletBalance(prev => prev + amountCents);
+  const topUpWallet = (amountRupees: number) => {
+    const amountPaise = Math.round(amountRupees * 100);
+    setWalletBalance(prev => prev + amountPaise);
     setWalletTransactions(prev => [
       {
         id: 'tx_' + Date.now(),
-        title: '💳 Bank Card Top-Up Successful',
-        amountFormatted: `+¥${amountYuan.toFixed(2)}`,
+        title: '💳 UPI Top-Up Successful',
+        amountFormatted: `+₹${amountRupees.toFixed(2)}`,
         isPositive: true,
         type: 'TOP_UP',
         date: 'Just now'
@@ -674,19 +673,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const found = friends.find(f => f.username.toLowerCase() === identifier.toLowerCase());
     if (found) return true;
 
-    // Create new friend dynamically
+    const cleanName = identifier.includes('@') ? identifier.split('@')[0] : identifier;
     const newFriend: Contact = {
       id: 'friend_' + Date.now(),
-      displayName: identifier.includes('@') ? identifier.split('@')[0] : identifier,
-      username: identifier.toLowerCase().replace(/\s+/g, '_'),
+      displayName: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+      username: cleanName.toLowerCase().replace(/\s+/g, '_'),
+      upiId: `${cleanName.toLowerCase()}@omnichat`,
       avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160',
-      region: 'Shanghai, China',
-      signature: 'Added via WeChat QR Code scan 📱'
+      region: 'Bengaluru, Karnataka',
+      signature: 'Added via OmniChat QR Code Scan 📱'
     };
 
     setFriends(prev => [newFriend, ...prev]);
 
-    // Create a new conversation
     const newConv: Conversation = {
       id: 'conv_' + newFriend.id,
       title: newFriend.displayName,
@@ -694,7 +693,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isGroup: false,
       isPinned: false,
       unreadCount: 0,
-      lastMessageText: 'You are now friends on OmniChat. Say hi! 👋',
+      lastMessageText: 'Connected on OmniChat. Say hello! 👋',
       lastMessageAt: 'Just now',
       partnerId: newFriend.id
     };
@@ -709,12 +708,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setFriendRequests(prev => prev.filter(r => r.id !== reqId));
 
+    const cleanUsername = req.senderName.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const newFriend: Contact = {
       id: req.senderId,
       displayName: req.senderName,
-      username: req.senderName.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+      username: cleanUsername,
+      upiId: `${cleanUsername}@omnichat`,
       avatarUrl: req.senderAvatar,
-      region: 'Guangzhou, China',
+      region: 'Delhi NCR',
       signature: 'Friend request accepted! 🎉'
     };
 
@@ -727,7 +728,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       isGroup: false,
       isPinned: false,
       unreadCount: 1,
-      lastMessageText: 'I accepted your friend request. Let us chat! 🎉',
+      lastMessageText: 'Accepted your friend request. Lets chat! 🎉',
       lastMessageAt: 'Just now',
       partnerId: req.senderId
     };
@@ -744,7 +745,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       durationSeconds: 0
     });
 
-    // Automatically simulate connection after 2 seconds
     setTimeout(() => {
       setActiveCall(prev => (prev ? { ...prev, status: 'connected' } : null));
     }, 2000);
@@ -754,7 +754,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveCall(null);
   };
 
-  const walletBalanceFormatted = (walletBalance / 100).toLocaleString('en-US', {
+  const walletBalanceFormatted = (walletBalance / 100).toLocaleString('en-IN', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });

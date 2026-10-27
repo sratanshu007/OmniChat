@@ -26,16 +26,17 @@ export default function ContactProfileScreen() {
   const { friends, startCall } = useApp();
 
   const contact = friends.find(f => f.id === id) || {
-    id: id || 'user_emma',
-    displayName: 'Emma Watson',
-    username: 'emma_w',
+    id: id || 'user_priya',
+    displayName: 'Priya Patel',
+    username: 'priya_p',
+    upiId: 'priya@okhdfcbank',
     avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=160',
-    region: 'London, UK',
-    signature: 'Keep smiling, tomorrow is a brand new day 🌸',
-    phone: '+44 7911 123456'
+    region: 'Mumbai, Maharashtra',
+    signature: 'Life is too short for bad chai ☕✨',
+    phone: '+91 98200 11223'
   };
 
-  const convId = contact.id === 'user_emma' ? 'conv_emma' : contact.id === 'user_wei' ? 'conv_wei' : 'conv_' + contact.id;
+  const convId = contact.id === 'user_priya' ? 'conv_priya' : contact.id === 'user_rohan' ? 'conv_rohan' : 'conv_' + contact.id;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,7 +46,7 @@ export default function ContactProfileScreen() {
           <ChevronLeft size={26} color="#111827" />
           <Text style={styles.backLabel}>Contacts</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerTitle}>Contact Profile</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -58,15 +59,15 @@ export default function ContactProfileScreen() {
               <Text style={styles.name}>{contact.displayName}</Text>
               <ShieldCheck size={16} color="#07C160" />
             </View>
-            <Text style={styles.wechatId}>WeChat ID: {contact.username}</Text>
-            <Text style={styles.region}>📍 Region: {contact.region}</Text>
+            <Text style={styles.wechatId}>UPI ID: {contact.upiId}</Text>
+            <Text style={styles.region}>📍 {contact.region}</Text>
           </View>
         </View>
 
-        {/* Signature */}
+        {/* Status / Signature */}
         <View style={styles.groupCard}>
           <View style={styles.row}>
-            <Text style={styles.rowTitle}>Signature</Text>
+            <Text style={styles.rowTitle}>Status</Text>
             <Text style={styles.signatureText}>{contact.signature || 'No status set'}</Text>
           </View>
         </View>
@@ -79,7 +80,7 @@ export default function ContactProfileScreen() {
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Camera size={18} color="#3B82F6" />
-              <Text style={styles.rowTitle}>Moments (朋友圈)</Text>
+              <Text style={styles.rowTitle}>Moments & Stories</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Image
@@ -100,7 +101,7 @@ export default function ContactProfileScreen() {
             onPress={() => router.push(`/chat/${convId}`)}
           >
             <MessageSquare size={20} color="#FFFFFF" />
-            <Text style={styles.messageBtnText}>Send Message (发消息)</Text>
+            <Text style={styles.messageBtnText}>Send Message</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -108,7 +109,7 @@ export default function ContactProfileScreen() {
             onPress={() => startCall(contact.displayName, contact.avatarUrl, 'audio')}
           >
             <Phone size={20} color="#111827" />
-            <Text style={styles.callBtnText}>Voice Call (语音通话)</Text>
+            <Text style={styles.callBtnText}>Voice Call</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -116,7 +117,7 @@ export default function ContactProfileScreen() {
             onPress={() => startCall(contact.displayName, contact.avatarUrl, 'video')}
           >
             <Video size={20} color="#111827" />
-            <Text style={styles.callBtnText}>Video Call (视频通话)</Text>
+            <Text style={styles.callBtnText}>Video Call</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

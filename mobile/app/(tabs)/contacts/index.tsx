@@ -28,7 +28,7 @@ export default function ContactsScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Contacts (通讯录)</Text>
+        <Text style={styles.headerTitle}>Contacts</Text>
         <TouchableOpacity onPress={() => setShowScanner(true)}>
           <QrCode size={22} color="#111827" />
         </TouchableOpacity>
@@ -47,7 +47,7 @@ export default function ContactsScreen() {
               <View style={[styles.sysIconBox, { backgroundColor: '#FA9D3B' }]}>
                 <UserPlus size={20} color="#FFFFFF" />
               </View>
-              <Text style={styles.sysRowLabel}>New Friends (新的朋友)</Text>
+              <Text style={styles.sysRowLabel}>New Friends</Text>
               {friendRequests.length > 0 && (
                 <View style={styles.reqBadge}>
                   <Text style={styles.reqBadgeText}>{friendRequests.length}</Text>
@@ -61,7 +61,7 @@ export default function ContactsScreen() {
               <View style={[styles.sysIconBox, { backgroundColor: Colors.light.primary }]}>
                 <QrCode size={20} color="#FFFFFF" />
               </View>
-              <Text style={styles.sysRowLabel}>Scan QR Code (扫一扫)</Text>
+              <Text style={styles.sysRowLabel}>Scan QR Code</Text>
               <ChevronRight size={18} color="#9CA3AF" />
             </TouchableOpacity>
 
@@ -70,16 +70,16 @@ export default function ContactsScreen() {
               <View style={[styles.sysIconBox, { backgroundColor: '#3B82F6' }]}>
                 <Users size={20} color="#FFFFFF" />
               </View>
-              <Text style={styles.sysRowLabel}>My QR Code (我的名片)</Text>
+              <Text style={styles.sysRowLabel}>My QR Profile Card</Text>
               <ChevronRight size={18} color="#9CA3AF" />
             </TouchableOpacity>
 
-            {/* Official Accounts */}
+            {/* Verified Businesses / Official Channels */}
             <TouchableOpacity style={styles.sysRow}>
               <View style={[styles.sysIconBox, { backgroundColor: '#2B82FF' }]}>
                 <Award size={20} color="#FFFFFF" />
               </View>
-              <Text style={styles.sysRowLabel}>Official Accounts (公众号)</Text>
+              <Text style={styles.sysRowLabel}>Verified Businesses</Text>
               <ChevronRight size={18} color="#9CA3AF" />
             </TouchableOpacity>
 
@@ -97,7 +97,7 @@ export default function ContactsScreen() {
             <Image source={{ uri: item.avatarUrl }} style={styles.contactAvatar} />
             <View style={styles.contactInfo}>
               <Text style={styles.contactName}>{item.displayName}</Text>
-              <Text style={styles.contactUsername}>WeChat ID: {item.username}</Text>
+              <Text style={styles.contactUsername}>UPI: {item.upiId}</Text>
             </View>
           </TouchableOpacity>
         )}
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB'
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#111827'
   },

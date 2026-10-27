@@ -49,7 +49,7 @@ export function QrCameraScanner({ onClose, onFriendAdded }: QrCameraScannerProps
         <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
           <X size={22} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Scan QR Code (扫一扫)</Text>
+        <Text style={styles.headerTitle}>Scan QR Code</Text>
         <TouchableOpacity
           style={styles.torchBtn}
           onPress={() => setTorchOn(!torchOn)}
@@ -109,8 +109,8 @@ export function QrCameraScanner({ onClose, onFriendAdded }: QrCameraScannerProps
                   style={styles.sheetAvatar}
                 />
                 <Text style={styles.sheetName}>{scannedUser?.displayName}</Text>
-                <Text style={styles.sheetId}>WeChat ID: {scannedUser?.username}</Text>
-                <Text style={styles.sheetRegion}>📍 {scannedUser?.region || 'Global'}</Text>
+                <Text style={styles.sheetId}>OmniChat ID: @{scannedUser?.username}</Text>
+                <Text style={styles.sheetRegion}>📍 {scannedUser?.region || 'India'}</Text>
 
                 {scannedUser?.bio && (
                   <View style={styles.bioBox}>

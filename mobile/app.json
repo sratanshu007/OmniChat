@@ -11,11 +11,6 @@
       "ios",
       "android"
     ],
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#07C160"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "io.omnichat.superapp",
@@ -45,6 +40,14 @@
         "expo-camera",
         {
           "cameraPermission": "Allow OmniChat to access your camera to scan friend QR codes."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#07C160",
+          "image": "./assets/splash.png",
+          "imageWidth": 200
         }
       ],
       "expo-asset",

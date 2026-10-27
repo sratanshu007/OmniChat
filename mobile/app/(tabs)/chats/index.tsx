@@ -18,7 +18,7 @@ import { QrCameraScanner } from '../../../src/components/QrCameraScanner';
 
 export default function ChatsScreen() {
   const router = useRouter();
-  const { conversations, addFriendByUsernameOrQR } = useApp();
+  const { conversations } = useApp();
   const [search, setSearch] = useState('');
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -33,7 +33,7 @@ export default function ChatsScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>OmniChat (微信)</Text>
+        <Text style={styles.headerTitle}>OmniChat</Text>
         <TouchableOpacity
           style={styles.headerPlusBtn}
           onPress={() => setShowPlusMenu(!showPlusMenu)}
@@ -53,7 +53,7 @@ export default function ChatsScreen() {
             }}
           >
             <QrCode size={18} color="#FFFFFF" />
-            <Text style={styles.menuItemText}>Scan QR Code (扫一扫)</Text>
+            <Text style={styles.menuItemText}>Scan QR Code</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -64,7 +64,7 @@ export default function ChatsScreen() {
             }}
           >
             <UserPlus size={18} color="#FFFFFF" />
-            <Text style={styles.menuItemText}>Add Contacts (添加朋友)</Text>
+            <Text style={styles.menuItemText}>Add Contacts</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -75,7 +75,7 @@ export default function ChatsScreen() {
           <Search size={16} color="#9CA3AF" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search conversations & messages"
+            placeholder="Search chats and messages"
             placeholderTextColor="#9CA3AF"
             value={search}
             onChangeText={setSearch}
@@ -112,7 +112,8 @@ export default function ChatsScreen() {
                 <Text
                   style={[
                     styles.lastMessage,
-                    item.lastMessageText?.includes('🧧') && styles.redPacketText
+                    (item.lastMessageText?.includes('🎁') || item.lastMessageText?.includes('🧧')) &&
+                      styles.giftText
                   ]}
                   numberOfLines={1}
                 >
@@ -152,7 +153,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB'
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#111827'
   },
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 55,
     right: 12,
-    backgroundColor: '#4B4B4B',
+    backgroundColor: '#374151',
     borderRadius: 8,
     paddingVertical: 4,
     paddingHorizontal: 8,
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderBottomWidth: 0.5,
-    borderColor: '#606060'
+    borderColor: '#4B5563'
   },
   menuItemText: {
     color: '#FFFFFF',
@@ -273,8 +274,8 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8
   },
-  redPacketText: {
-    color: '#E04A3F',
-    fontWeight: '600'
+  giftText: {
+    color: '#07C160',
+    fontWeight: '700'
   }
 });

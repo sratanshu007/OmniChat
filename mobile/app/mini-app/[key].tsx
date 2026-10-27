@@ -11,7 +11,6 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ChevronLeft,
-  Share2,
   MoreHorizontal,
   Gamepad2,
   Car,
@@ -19,35 +18,30 @@ import {
   CloudSun,
   CheckCircle2
 } from 'lucide-react-native';
-import { useApp } from '../../src/context/AppContext';
 
 export default function MiniAppScreen() {
   const { key } = useLocalSearchParams<{ key: string }>();
   const router = useRouter();
-  const { sendTransfer, walletBalanceFormatted } = useApp();
 
   const appKey = key || 'jump-2048';
 
-  // State for Jump Game
   const [gameScore, setGameScore] = useState(256);
   const [highScore, setHighScore] = useState(1024);
 
-  // State for Ride
-  const [pickup, setPickup] = useState('Shenzhen Tech Bay Building B');
-  const [dropoff, setDropoff] = useState('Baoan International Airport Terminal 3');
+  const [pickup, setPickup] = useState('Indiranagar 100ft Road, Bengaluru');
+  const [dropoff, setDropoff] = useState('Kempegowda International Airport (BLR)');
   const [rideBooked, setRideBooked] = useState(false);
 
-  // State for Food
   const [orderPlaced, setOrderPlaced] = useState(false);
 
   const handleOrderFood = () => {
     Alert.alert(
-      'WeChat Pay Confirmation',
-      'Pay ¥38.00 for Signature Dim Sum Platter?',
+      'UPI Payment Confirmation',
+      'Pay ₹340.00 for Hyderabadi Dum Biryani Special Meal?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Pay Now',
+          text: 'Pay with UPI',
           onPress: () => {
             setOrderPlaced(true);
           }
@@ -59,11 +53,11 @@ export default function MiniAppScreen() {
   const handleBookRide = () => {
     Alert.alert(
       'OmniRide Booking',
-      'Confirm Comfort Electric Ride (¥42.50)?',
+      'Confirm Sedan EV Cab to Airport (₹450.00)?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Confirm & Pay',
+          text: 'Confirm & Pay via UPI',
           onPress: () => {
             setRideBooked(true);
           }
@@ -74,7 +68,7 @@ export default function MiniAppScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Mini App Capsule Top Header */}
+      {/* Mini App Capsule Header */}
       <View style={styles.capsuleHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <ChevronLeft size={24} color="#111827" />
@@ -83,15 +77,14 @@ export default function MiniAppScreen() {
 
         <Text style={styles.miniAppTitle}>
           {appKey === 'jump-2048'
-            ? 'Jump 2048 Mini'
+            ? 'Jump 2048 Challenge'
             : appKey === 'omni-ride'
-            ? 'Omni Ride Hailing'
+            ? 'Omni Ride Cabs'
             : appKey === 'omni-eats'
-            ? 'Omni Eats Gourmet'
-            : 'City Weather Forecast'}
+            ? 'Omni Eats Delivery'
+            : 'Live Weather & AQI'}
         </Text>
 
-        {/* WeChat Mini Program standard capsule menu */}
         <View style={styles.capsulePill}>
           <TouchableOpacity style={styles.capsuleBtn}>
             <MoreHorizontal size={16} color="#111827" />
@@ -134,7 +127,7 @@ export default function MiniAppScreen() {
               }}
             >
               <Gamepad2 size={20} color="#FFFFFF" />
-              <Text style={styles.actionBtnText}>Slide & Merge Tiles! (+64)</Text>
+              <Text style={styles.actionBtnText}>Slide & Merge Tiles (+64)</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -157,15 +150,15 @@ export default function MiniAppScreen() {
             {rideBooked ? (
               <View style={styles.successCard}>
                 <CheckCircle2 size={40} color="#07C160" />
-                <Text style={styles.successTitle}>Driver is On The Way!</Text>
+                <Text style={styles.successTitle}>Cab Booked Successfully!</Text>
                 <Text style={styles.successSub}>
-                  Toyota Camry (粤B•886A2) • Arriving in 3 mins
+                  Driver: Suresh Kumar • Tata Tigor EV (KA-01-MJ-8821) arriving in 3 mins
                 </Text>
               </View>
             ) : (
               <TouchableOpacity style={styles.actionButton} onPress={handleBookRide}>
                 <Car size={20} color="#FFFFFF" />
-                <Text style={styles.actionBtnText}>Request Ride (¥42.50 with WeChat Pay)</Text>
+                <Text style={styles.actionBtnText}>Book EV Cab (₹450.00 via UPI)</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -174,34 +167,34 @@ export default function MiniAppScreen() {
         {/* FOOD: Omni Eats */}
         {appKey === 'omni-eats' && (
           <View style={styles.serviceContainer}>
-            <Text style={styles.cardSectionTitle}>TODAY'S SPECIAL DISHES</Text>
+            <Text style={styles.cardSectionTitle}>POPULAR DISHES TODAY</Text>
 
             <View style={styles.foodItem}>
               <View style={styles.foodInfo}>
-                <Text style={styles.foodTitle}>Signature Dim Sum Platter 🥟</Text>
-                <Text style={styles.foodDesc}>Handcrafted shrimp dumplings and pork buns</Text>
-                <Text style={styles.foodPrice}>¥38.00</Text>
+                <Text style={styles.foodTitle}>Hyderabadi Dum Biryani Special 🍛</Text>
+                <Text style={styles.foodDesc}>Slow cooked basmati rice with aromatic spices & raita</Text>
+                <Text style={styles.foodPrice}>₹280.00</Text>
               </View>
             </View>
 
             <View style={styles.foodItem}>
               <View style={styles.foodInfo}>
-                <Text style={styles.foodTitle}>Roast Duck Cantonese Style 🍗</Text>
-                <Text style={styles.foodDesc}>Crispy skin, honey plum dipping glaze</Text>
-                <Text style={styles.foodPrice}>¥58.00</Text>
+                <Text style={styles.foodTitle}>Paneer Butter Masala with Garlic Naan 🫓</Text>
+                <Text style={styles.foodDesc}>Rich butter gravy with 2 freshly baked tandoori naans</Text>
+                <Text style={styles.foodPrice}>₹240.00</Text>
               </View>
             </View>
 
             {orderPlaced ? (
               <View style={styles.successCard}>
                 <CheckCircle2 size={40} color="#07C160" />
-                <Text style={styles.successTitle}>Order Confirmed & Paid!</Text>
-                <Text style={styles.successSub}>Kitchen is preparing your fresh meal.</Text>
+                <Text style={styles.successTitle}>Order Placed via UPI!</Text>
+                <Text style={styles.successSub}>The restaurant is packing your fresh meal.</Text>
               </View>
             ) : (
               <TouchableOpacity style={styles.actionButton} onPress={handleOrderFood}>
                 <Utensils size={20} color="#FFFFFF" />
-                <Text style={styles.actionBtnText}>Order Now (¥38.00 with WeChat Pay)</Text>
+                <Text style={styles.actionBtnText}>Order Now (₹340.00 via UPI)</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -212,9 +205,9 @@ export default function MiniAppScreen() {
           <View style={styles.serviceContainer}>
             <View style={styles.weatherCard}>
               <CloudSun size={54} color="#F59E0B" />
-              <Text style={styles.weatherTemp}>26°C</Text>
-              <Text style={styles.weatherCity}>Shenzhen, Guangdong</Text>
-              <Text style={styles.weatherDesc}>Sunny and Comfortable • AQI: 28 (Excellent)</Text>
+              <Text style={styles.weatherTemp}>24°C</Text>
+              <Text style={styles.weatherCity}>Bengaluru, Karnataka</Text>
+              <Text style={styles.weatherDesc}>Pleasant & Breezy • AQI: 35 (Good)</Text>
             </View>
           </View>
         )}

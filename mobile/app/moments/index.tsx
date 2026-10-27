@@ -49,7 +49,7 @@ export default function MomentsScreen() {
           <ChevronLeft size={26} color="#FFFFFF" />
           <Text style={styles.backLabel}>Discover</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Moments (朋友圈)</Text>
+        <Text style={styles.headerTitle}>Moments & Stories</Text>
         <TouchableOpacity style={styles.cameraBtn} onPress={() => setShowCreateModal(true)}>
           <Camera size={22} color="#FFFFFF" />
         </TouchableOpacity>
@@ -189,7 +189,7 @@ export default function MomentsScreen() {
             <TextInput
               style={styles.createInput}
               multiline
-              placeholder="What's on your mind? Share with WeChat friends..."
+              placeholder="What's on your mind? Share updates with friends..."
               placeholderTextColor="#9CA3AF"
               value={newContent}
               onChangeText={setNewContent}
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   postAuthor: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#576B95' // Classic WeChat Blue-Purple username
+    color: '#07C160'
   },
   postText: {
     fontSize: 14,
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   likesText: {
     fontSize: 12,
-    color: '#576B95',
+    color: '#07C160',
     fontWeight: '600'
   },
   commentsBox: {
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   commentAuthor: {
     fontWeight: '700',
-    color: '#576B95'
+    color: '#07C160'
   },
   commentInputRow: {
     flexDirection: 'row',

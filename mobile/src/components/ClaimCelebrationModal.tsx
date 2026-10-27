@@ -15,8 +15,8 @@ export const ClaimCelebrationModal: React.FC<Props> = ({ visible, message, onClo
   if (!message || !visible) return null;
 
   const isAlreadyClaimed = message.metadata?.isClaimed;
-  const amountCents = message.metadata?.amountCents || 8888;
-  const amountYuan = (amountCents / 100).toFixed(2);
+  const amountRupees = message.metadata?.amountRupees || 501;
+  const amountFormatted = amountRupees.toFixed(2);
 
   const handleOpen = () => {
     claimRedPacket(message.conversationId, message.id);
@@ -30,23 +30,23 @@ export const ClaimCelebrationModal: React.FC<Props> = ({ visible, message, onClo
           {/* Sender header */}
           <View style={styles.topInfo}>
             <Image source={{ uri: message.senderAvatar }} style={styles.senderAvatar} />
-            <Text style={styles.senderName}>{message.senderName}'s Red Packet</Text>
-            <Text style={styles.greeting}>{message.metadata?.greeting || 'Gong Xi Fa Cai 🧧'}</Text>
+            <Text style={styles.senderName}>{message.senderName}'s Gift Envelope</Text>
+            <Text style={styles.greeting}>{message.metadata?.greeting || 'Best Wishes & Good Luck! 🎁'}</Text>
           </View>
 
           {/* Envelope Opening Circle */}
           {!isAlreadyClaimed && !opened ? (
             <View style={styles.openCircleContainer}>
               <TouchableOpacity style={styles.openBtn} onPress={handleOpen}>
-                <Text style={styles.openBtnText}>開</Text>
+                <Text style={styles.openBtnText}>OPEN</Text>
               </TouchableOpacity>
-              <Text style={styles.openHint}>Tap to open red packet</Text>
+              <Text style={styles.openHint}>Tap to open gift envelope</Text>
             </View>
           ) : (
             <View style={styles.claimedContainer}>
-              <Text style={styles.claimedAmount}>¥{amountYuan}</Text>
-              <Text style={styles.claimedStatus}>Added directly to your WeChat Pay Wallet! ✅</Text>
-              <Text style={styles.walletCurrent}>Current Wallet: ¥{walletBalanceFormatted}</Text>
+              <Text style={styles.claimedAmount}>₹{amountFormatted}</Text>
+              <Text style={styles.claimedStatus}>Added directly to your OmniPay Wallet! ✅</Text>
+              <Text style={styles.walletCurrent}>Current Wallet: ₹{walletBalanceFormatted}</Text>
             </View>
           )}
 
@@ -70,12 +70,12 @@ const styles = StyleSheet.create({
   envelopeCard: {
     width: '100%',
     maxWidth: 340,
-    backgroundColor: '#FA4E42',
+    backgroundColor: '#07C160',
     borderRadius: 24,
     padding: 28,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FBE8B3'
+    borderColor: '#DEF7EC'
   },
   topInfo: {
     alignItems: 'center',
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FBE8B3',
+    color: '#FFFFFF',
     textAlign: 'center'
   },
   openCircleContainer: {
@@ -106,10 +106,10 @@ const styles = StyleSheet.create({
     marginVertical: 20
   },
   openBtn: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: '#FBE8B3',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 8,
@@ -118,12 +118,13 @@ const styles = StyleSheet.create({
     shadowRadius: 6
   },
   openBtnText: {
-    fontSize: 34,
+    fontSize: 18,
     fontWeight: '900',
-    color: '#A82820'
+    color: '#07C160',
+    letterSpacing: 1
   },
   openHint: {
-    color: '#FCE7C8',
+    color: '#DEF7EC',
     fontSize: 13,
     marginTop: 12,
     fontWeight: '600'
@@ -135,17 +136,17 @@ const styles = StyleSheet.create({
   claimedAmount: {
     fontSize: 44,
     fontWeight: '900',
-    color: '#FBE8B3'
+    color: '#FFFFFF'
   },
   claimedStatus: {
-    color: '#FFFFFF',
+    color: '#DEF7EC',
     fontSize: 13,
     fontWeight: '600',
     marginTop: 8,
     textAlign: 'center'
   },
   walletCurrent: {
-    color: '#FCE7C8',
+    color: '#FFFFFF',
     fontSize: 12,
     marginTop: 4
   },

@@ -20,8 +20,7 @@ import {
   Plus,
   Send,
   Image as ImageIcon,
-  Mic,
-  DollarSign
+  Mic
 } from 'lucide-react-native';
 import { useApp, ChatMessage } from '../../src/context/AppContext';
 import { RedPacketModal } from '../../src/components/RedPacketModal';
@@ -32,7 +31,7 @@ export default function ChatDetailScreen() {
   const router = useRouter();
   const { conversations, messages, sendMessage, startCall } = useApp();
 
-  const convId = id || 'conv_emma';
+  const convId = id || 'conv_priya';
   const conv = conversations.find(c => c.id === convId) || {
     id: convId,
     title: 'Chat',
@@ -83,7 +82,7 @@ export default function ChatDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Chat Top Header */}
+      {/* Top Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <ChevronLeft size={26} color="#111827" />
@@ -94,7 +93,7 @@ export default function ChatDetailScreen() {
           <Text style={styles.headerTitle} numberOfLines={1}>
             {conv.title}
           </Text>
-          <Text style={styles.headerStatus}>Online via WeChat Protocol</Text>
+          <Text style={styles.headerStatus}>Active Now</Text>
         </View>
 
         <View style={styles.headerActions}>
@@ -117,7 +116,7 @@ export default function ChatDetailScreen() {
         renderItem={({ item }) => {
           const isMe = item.isMe;
 
-          // Render Red Packet Bubble
+          // Gift Envelope Bubble
           if (item.type === 'RED_PACKET') {
             return (
               <View style={[styles.bubbleRow, isMe ? styles.bubbleRowMe : styles.bubbleRowThem]}>
@@ -129,19 +128,19 @@ export default function ChatDetailScreen() {
                 >
                   <View style={styles.redPacketTop}>
                     <View style={styles.redPacketIconCircle}>
-                      <Text style={styles.redPacketIconText}>🧧</Text>
+                      <Text style={styles.redPacketIconText}>🎁</Text>
                     </View>
                     <View style={styles.redPacketInfo}>
                       <Text style={styles.redPacketGreeting}>
                         {item.metadata?.greeting || 'Best Wishes!'}
                       </Text>
                       <Text style={styles.redPacketClaimHint}>
-                        {item.metadata?.isClaimed ? 'Claimed ✅' : 'Tap to open WeChat Red Packet'}
+                        {item.metadata?.isClaimed ? 'Claimed ✅' : 'Tap to open Gift Envelope'}
                       </Text>
                     </View>
                   </View>
                   <View style={styles.redPacketBottom}>
-                    <Text style={styles.redPacketFooterText}>OmniChat Lucky Money</Text>
+                    <Text style={styles.redPacketFooterText}>OmniPay Shagun Gift</Text>
                   </View>
                 </TouchableOpacity>
                 {isMe && <Image source={{ uri: item.senderAvatar }} style={styles.bubbleAvatar} />}
@@ -149,7 +148,7 @@ export default function ChatDetailScreen() {
             );
           }
 
-          // Render Image Bubble
+          // Image Bubble
           if (item.type === 'IMAGE' && item.metadata?.imageUrl) {
             return (
               <View style={[styles.bubbleRow, isMe ? styles.bubbleRowMe : styles.bubbleRowThem]}>
@@ -163,16 +162,16 @@ export default function ChatDetailScreen() {
             );
           }
 
-          // Render Voice Message Bubble
+          // Voice Message Bubble
           if (item.type === 'VOICE') {
             return (
               <View style={[styles.bubbleRow, isMe ? styles.bubbleRowMe : styles.bubbleRowThem]}>
                 {!isMe && <Image source={{ uri: item.senderAvatar }} style={styles.bubbleAvatar} />}
                 <TouchableOpacity
                   style={[styles.voiceBubble, isMe ? styles.bubbleMe : styles.bubbleThem]}
-                  onPress={() => Alert.alert('Playing Audio', 'Simulating WeChat Voice Note playback 🔊')}
+                  onPress={() => Alert.alert('Playing Audio', 'Playing voice note audio 🔊')}
                 >
-                  <Mic size={18} color={isMe ? '#111827' : '#111827'} />
+                  <Mic size={18} color="#111827" />
                   <Text style={styles.voiceText}>(( 3" ))</Text>
                   <Text style={styles.messageTime}>{item.createdAt}</Text>
                 </TouchableOpacity>
@@ -195,14 +194,14 @@ export default function ChatDetailScreen() {
         }}
       />
 
-      {/* Attachment Tray (Red packet, voice call, video call, photo) */}
+      {/* Attachment Tray */}
       {showAttachMenu && (
         <View style={styles.attachMenu}>
           <TouchableOpacity style={styles.attachOption} onPress={() => setShowRedPacketModal(true)}>
             <View style={[styles.attachIconBox, { backgroundColor: '#FA4E42' }]}>
-              <Text style={{ fontSize: 24 }}>🧧</Text>
+              <Text style={{ fontSize: 24 }}>🎁</Text>
             </View>
-            <Text style={styles.attachLabel}>Red Packet</Text>
+            <Text style={styles.attachLabel}>Gift Envelope</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.attachOption} onPress={handleSendPhoto}>
@@ -351,7 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 8
   },
   bubbleMe: {
-    backgroundColor: '#95EC69', // Classic WeChat Emerald Green
+    backgroundColor: '#95EC69',
     borderTopRightRadius: 2
   },
   bubbleThem: {
@@ -399,7 +398,7 @@ const styles = StyleSheet.create({
   },
   redPacketCard: {
     width: 230,
-    backgroundColor: '#FA9D3B', // WeChat Red Packet orange-red
+    backgroundColor: '#07C160',
     borderRadius: 10,
     overflow: 'hidden',
     elevation: 2
@@ -408,13 +407,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#FA5151'
+    backgroundColor: '#07C160'
   },
   redPacketIconCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FBE8B3',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10
@@ -432,7 +431,7 @@ const styles = StyleSheet.create({
   },
   redPacketClaimHint: {
     fontSize: 11,
-    color: '#FBE8B3',
+    color: '#E6F9F0',
     marginTop: 2
   },
   redPacketBottom: {
@@ -442,7 +441,7 @@ const styles = StyleSheet.create({
   },
   redPacketFooterText: {
     fontSize: 10,
-    color: '#9CA3AF',
+    color: '#6B7280',
     fontWeight: '600'
   },
   bottomBar: {

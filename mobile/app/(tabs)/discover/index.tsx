@@ -11,12 +11,12 @@ export default function DiscoverScreen() {
   const { moments } = useApp();
   const [showScanner, setShowScanner] = useState(false);
 
-  const latestMomentAuthorAvatar = moments[0]?.authorAvatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100';
+  const latestAvatar = moments[0]?.authorAvatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100';
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Discover (发现)</Text>
+        <Text style={styles.headerTitle}>Discover</Text>
       </View>
 
       <ScrollView style={styles.content}>
@@ -30,9 +30,9 @@ export default function DiscoverScreen() {
             <View style={[styles.iconBox, { backgroundColor: '#3B82F6' }]}>
               <Camera size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Moments (朋友圈)</Text>
+            <Text style={styles.rowLabel}>Moments & Stories</Text>
             <View style={styles.momentsPreview}>
-              <Image source={{ uri: latestMomentAuthorAvatar }} style={styles.previewAvatar} />
+              <Image source={{ uri: latestAvatar }} style={styles.previewAvatar} />
               <View style={styles.redDot} />
             </View>
             <ChevronRight size={18} color="#9CA3AF" />
@@ -44,18 +44,18 @@ export default function DiscoverScreen() {
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
-            onPress={() => Alert.alert('Channels (视频号)', 'Short video feeds similar to WeChat Channels')}
+            onPress={() => Alert.alert('Video Channels', 'Explore short videos and creator reels')}
           >
             <View style={[styles.iconBox, { backgroundColor: '#F97316' }]}>
               <Video size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Channels (视频号)</Text>
-            <Text style={styles.hotTag}>Hot Clips 🔥</Text>
+            <Text style={styles.rowLabel}>Channels & Clips</Text>
+            <Text style={styles.hotTag}>Trending 🔥</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
 
-        {/* Group 3: Scan & Shake */}
+        {/* Group 3: Scan & Nearby */}
         <View style={styles.groupCard}>
           <TouchableOpacity
             style={styles.row}
@@ -65,46 +65,46 @@ export default function DiscoverScreen() {
             <View style={[styles.iconBox, { backgroundColor: Colors.light.primary }]}>
               <QrCode size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Scan (扫一扫)</Text>
+            <Text style={styles.rowLabel}>Scan QR Code</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
-            onPress={() => Alert.alert('Shake (摇一摇)', 'Looking for nearby people who are shaking phones...')}
+            onPress={() => Alert.alert('Nearby People', 'Searching for active OmniChat users in your city...')}
           >
             <View style={[styles.iconBox, { backgroundColor: '#10B981' }]}>
               <Smartphone size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Shake (摇一摇)</Text>
+            <Text style={styles.rowLabel}>Nearby People</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
 
-        {/* Group 4: Top Stories & Search */}
+        {/* Group 4: Trending Stories & Search */}
         <View style={styles.groupCard}>
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
-            onPress={() => Alert.alert('Top Stories', 'Trending articles read by friends in WeChat')}
+            onPress={() => Alert.alert('Trending Stories', 'Top news and curated stories shared across India')}
           >
             <View style={[styles.iconBox, { backgroundColor: '#EAB308' }]}>
               <Globe size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Top Stories (看一看)</Text>
+            <Text style={styles.rowLabel}>Trending Stories</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.row}
             activeOpacity={0.7}
-            onPress={() => Alert.alert('Search (搜一搜)', 'Global WeChat Search index')}
+            onPress={() => Alert.alert('Global Search', 'Search people, messages, articles, and mini programs')}
           >
             <View style={[styles.iconBox, { backgroundColor: '#EF4444' }]}>
               <Search size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Search (搜一搜)</Text>
+            <Text style={styles.rowLabel}>Global Search</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
@@ -119,7 +119,7 @@ export default function DiscoverScreen() {
             <View style={[styles.iconBox, { backgroundColor: '#8B5CF6' }]}>
               <Sparkles size={18} color="#FFFFFF" />
             </View>
-            <Text style={styles.rowLabel}>Mini Programs (小程序)</Text>
+            <Text style={styles.rowLabel}>Mini Programs & Services</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB'
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#111827'
   },

@@ -7,8 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Modal,
-  TextInput,
-  FlatList
+  TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
@@ -27,7 +26,7 @@ export default function WalletScreen() {
   const { walletBalanceFormatted, walletTransactions, topUpWallet } = useApp();
 
   const [showTopUpModal, setShowTopUpModal] = useState(false);
-  const [topUpAmount, setTopUpAmount] = useState('200');
+  const [topUpAmount, setTopUpAmount] = useState('500');
 
   const handleTopUp = () => {
     const val = parseFloat(topUpAmount);
@@ -44,7 +43,7 @@ export default function WalletScreen() {
           <ChevronLeft size={26} color="#FFFFFF" />
           <Text style={styles.backLabel}>Me</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>WeChat Pay (微信支付)</Text>
+        <Text style={styles.headerTitle}>OmniPay & UPI Wallet</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -52,20 +51,20 @@ export default function WalletScreen() {
         {/* Emerald Hero Balance Card */}
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
-            <Text style={styles.heroLabel}>Wallet Balance (零钱)</Text>
+            <Text style={styles.heroLabel}>Total Available Balance</Text>
             <View style={styles.verifiedBadge}>
               <ShieldCheck size={14} color="#D1FAE5" />
-              <Text style={styles.verifiedText}>Real-Name Verified</Text>
+              <Text style={styles.verifiedText}>KYC Verified</Text>
             </View>
           </View>
 
-          <Text style={styles.balanceBig}>¥{walletBalanceFormatted}</Text>
+          <Text style={styles.balanceBig}>₹{walletBalanceFormatted}</Text>
 
           <View style={styles.heroActionsRow}>
-            {/* Money Code */}
+            {/* Show QR */}
             <TouchableOpacity style={styles.heroActionBtn}>
               <QrCode size={20} color="#07C160" />
-              <Text style={styles.heroActionText}>Money Code</Text>
+              <Text style={styles.heroActionText}>Receive QR</Text>
             </TouchableOpacity>
 
             {/* Top Up */}
@@ -74,27 +73,27 @@ export default function WalletScreen() {
               onPress={() => setShowTopUpModal(true)}
             >
               <PlusCircle size={20} color="#07C160" />
-              <Text style={styles.heroActionText}>Top Up (充值)</Text>
+              <Text style={styles.heroActionText}>Add Money</Text>
             </TouchableOpacity>
 
             {/* Transfer */}
             <TouchableOpacity style={styles.heroActionBtn}>
               <ArrowDownLeft size={20} color="#07C160" />
-              <Text style={styles.heroActionText}>Transfer</Text>
+              <Text style={styles.heroActionText}>UPI Transfer</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Bank Cards Section */}
+        {/* Bank Accounts Section */}
         <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>MY CARDS (银行卡)</Text>
+          <Text style={styles.sectionTitle}>LINKED BANK ACCOUNTS & UPI</Text>
           <View style={styles.cardItem}>
-            <View style={[styles.cardIconBox, { backgroundColor: '#EF4444' }]}>
+            <View style={[styles.cardIconBox, { backgroundColor: '#1E3A8A' }]}>
               <CreditCard size={18} color="#FFFFFF" />
             </View>
             <View style={styles.cardInfo}>
-              <Text style={styles.bankName}>Industrial and Commercial Bank of China</Text>
-              <Text style={styles.cardDigits}>Debit Card (**** 8821)</Text>
+              <Text style={styles.bankName}>HDFC Bank Savings Account</Text>
+              <Text style={styles.cardDigits}>Account ending in **** 8821 • Primary UPI</Text>
             </View>
             <Text style={styles.primaryTag}>Primary</Text>
           </View>
@@ -105,7 +104,7 @@ export default function WalletScreen() {
           <View style={styles.txHeaderRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <History size={16} color="#6B7280" />
-              <Text style={styles.sectionTitle}>RECENT TRANSACTIONS (账单明细)</Text>
+              <Text style={styles.sectionTitle}>TRANSACTION HISTORY (₹)</Text>
             </View>
           </View>
 
@@ -127,11 +126,11 @@ export default function WalletScreen() {
       <Modal visible={showTopUpModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Top Up Wallet (零钱充值)</Text>
-            <Text style={styles.modalSub}>From: ICBC Debit Card (**** 8821)</Text>
+            <Text style={styles.modalTitle}>Add Money to OmniPay</Text>
+            <Text style={styles.modalSub}>From: HDFC Bank Account (**** 8821)</Text>
 
             <View style={styles.topUpInputRow}>
-              <Text style={styles.currencyPrefix}>¥</Text>
+              <Text style={styles.currencyPrefix}>₹</Text>
               <TextInput
                 style={styles.topUpInput}
                 keyboardType="decimal-pad"
@@ -156,14 +155,14 @@ export default function WalletScreen() {
                       topUpAmount === val && styles.presetPillTextActive
                     ]}
                   >
-                    ¥{val}
+                    ₹{val}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             <TouchableOpacity style={styles.confirmTopUpBtn} onPress={handleTopUp}>
-              <Text style={styles.confirmTopUpText}>Confirm Top Up</Text>
+              <Text style={styles.confirmTopUpText}>Confirm & Add Money</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

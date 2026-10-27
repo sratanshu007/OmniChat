@@ -10,8 +10,8 @@ interface Props {
 
 export const RedPacketModal: React.FC<Props> = ({ visible, convId, onClose }) => {
   const { sendRedPacket, walletBalanceFormatted } = useApp();
-  const [amount, setAmount] = useState('8.88');
-  const [greeting, setGreeting] = useState('Best Wishes & Good Luck! 🧧');
+  const [amount, setAmount] = useState('501');
+  const [greeting, setGreeting] = useState('Best Wishes & Blessings! 🎁');
 
   const handleSend = () => {
     const val = parseFloat(amount);
@@ -29,7 +29,7 @@ export const RedPacketModal: React.FC<Props> = ({ visible, convId, onClose }) =>
         <View style={styles.card}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>Send Lucky Red Packet (发红包)</Text>
+            <Text style={styles.title}>Send Shagun Gift Envelope</Text>
             <TouchableOpacity onPress={onClose}>
               <Text style={styles.closeTxt}>✕</Text>
             </TouchableOpacity>
@@ -37,9 +37,9 @@ export const RedPacketModal: React.FC<Props> = ({ visible, convId, onClose }) =>
 
           {/* Amount input */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Total Amount (金额)</Text>
+            <Text style={styles.label}>Gift Amount (₹)</Text>
             <View style={styles.amountInputRow}>
-              <Text style={styles.currencySymbol}>¥</Text>
+              <Text style={styles.currencySymbol}>₹</Text>
               <TextInput
                 style={styles.amountInput}
                 keyboardType="decimal-pad"
@@ -52,35 +52,35 @@ export const RedPacketModal: React.FC<Props> = ({ visible, convId, onClose }) =>
 
           {/* Greeting message */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Greeting (祝福语)</Text>
+            <Text style={styles.label}>Blessings / Greeting</Text>
             <TextInput
               style={styles.textInput}
               value={greeting}
               onChangeText={setGreeting}
-              placeholder="Gong Xi Fa Cai 🧧"
+              placeholder="Best Wishes & Good Luck! 🎁"
             />
           </View>
 
-          {/* Quick Preset Buttons */}
+          {/* Quick Preset Buttons (Traditional Indian Shagun amounts) */}
           <View style={styles.presetRow}>
-            {['6.66', '8.88', '52.00', '88.88'].map(preset => (
+            {['51', '101', '251', '501'].map(preset => (
               <TouchableOpacity
                 key={preset}
                 style={[styles.presetBtn, amount === preset && styles.presetBtnActive]}
                 onPress={() => setAmount(preset)}
               >
                 <Text style={[styles.presetText, amount === preset && styles.presetTextActive]}>
-                  ¥{preset}
+                  ₹{preset}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={styles.walletHint}>Wallet Balance: ¥{walletBalanceFormatted}</Text>
+          <Text style={styles.walletHint}>OmniPay Wallet Balance: ₹{walletBalanceFormatted}</Text>
 
           {/* Submit Button */}
           <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-            <Text style={styles.sendBtnText}>Put Money in Red Packet (塞钱进红包)</Text>
+            <Text style={styles.sendBtnText}>Send Shagun Gift via UPI</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     padding: 20
   },
   card: {
-    backgroundColor: '#FA4E42',
+    backgroundColor: '#07C160',
     borderRadius: 20,
     padding: 24,
     shadowColor: '#000',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FBE8B3'
+    color: '#FFFFFF'
   },
   closeTxt: {
     fontSize: 20,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     borderRadius: 8
   },
   presetBtnActive: {
-    backgroundColor: '#FBE8B3'
+    backgroundColor: '#FFFFFF'
   },
   presetText: {
     color: '#FFFFFF',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   presetTextActive: {
-    color: '#FA4E42'
+    color: '#07C160'
   },
   walletHint: {
     color: 'rgba(255,255,255,0.85)',
@@ -182,14 +182,14 @@ const styles = StyleSheet.create({
     marginVertical: 10
   },
   sendBtn: {
-    backgroundColor: '#FBE8B3',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 6
   },
   sendBtnText: {
-    color: '#A82820',
+    color: '#07C160',
     fontSize: 16,
     fontWeight: '800'
   }

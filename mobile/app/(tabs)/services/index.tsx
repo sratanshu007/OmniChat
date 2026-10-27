@@ -8,34 +8,34 @@ const miniAppsList = [
   {
     id: 'app_1',
     appKey: 'jump-2048',
-    name: 'Jump 2048 Game',
+    name: 'Jump 2048 Challenge',
     category: 'Gaming',
-    usersCount: '1.2M',
-    description: 'Casual puzzle merging game. Instant launch without installation.'
+    usersCount: '1.2M users',
+    description: 'Addictive number merging puzzle. Instant launch without downloading an app.'
   },
   {
     id: 'app_2',
     appKey: 'omni-ride',
-    name: 'Omni Ride Hailing',
+    name: 'Omni Ride Cabs',
     category: 'Travel & Mobility',
-    usersCount: '850K',
-    description: 'On-demand taxi and electric car booking with WeChat Pay split bill.'
+    usersCount: '850K rides',
+    description: 'Instant auto and cab booking across Bengaluru, Mumbai & Delhi with UPI pay.'
   },
   {
     id: 'app_3',
     appKey: 'omni-eats',
     name: 'Omni Eats Gourmet',
-    category: 'Food & Dining',
-    usersCount: '2.4M',
-    description: 'Order takeout, view artisanal restaurant menus, and earn WeChat points.'
+    category: 'Food Delivery',
+    usersCount: '2.4M orders',
+    description: 'Order Biryani, artisanal filter coffee, and Indian snacks with 1-tap checkout.'
   },
   {
     id: 'app_4',
     appKey: 'weather',
-    name: 'City Weather Forecast',
+    name: 'Live Weather & AQI',
     category: 'Utilities',
-    usersCount: '500K',
-    description: 'Live meteorological updates, air quality index, and rain radar.'
+    usersCount: '500K daily',
+    description: 'Real-time temperature, air quality index (AQI), and monsoon radar alerts.'
   }
 ];
 
@@ -54,7 +54,7 @@ export default function ServicesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Services & Mini Programs (服务与小程序)</Text>
+        <Text style={styles.headerTitle}>Services & Mini Programs</Text>
       </View>
 
       <FlatList
@@ -64,11 +64,11 @@ export default function ServicesScreen() {
           <View style={styles.banner}>
             <View style={styles.bannerBadge}>
               <Sparkles size={14} color="#FFFFFF" />
-              <Text style={styles.bannerBadgeText}>MINI ECOSYSTEM</Text>
+              <Text style={styles.bannerBadgeText}>INSTANT MINI ECOSYSTEM</Text>
             </View>
-            <Text style={styles.bannerTitle}>Instant Apps, Zero Installs</Text>
+            <Text style={styles.bannerTitle}>Instant Services, Zero Installs</Text>
             <Text style={styles.bannerSubtitle}>
-              Play casual games, hail rides, order food, and check weather with WeChat Pay integration.
+              Play casual games, book city cabs, order delicious food, and pay seamlessly using UPI.
             </Text>
           </View>
         )}
@@ -88,7 +88,7 @@ export default function ServicesScreen() {
                   <Text style={styles.openPillText}>Open</Text>
                 </View>
               </View>
-              <Text style={styles.appCategory}>{item.category} • {item.usersCount} users</Text>
+              <Text style={styles.appCategory}>{item.category} • {item.usersCount}</Text>
               <Text style={styles.appDesc} numberOfLines={2}>{item.description}</Text>
             </View>
           </TouchableOpacity>
@@ -111,12 +111,12 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB'
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#111827'
   },
   banner: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#07C160',
     margin: 16,
     borderRadius: 16,
     padding: 18
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     marginTop: 8
   },
   bannerSubtitle: {
-    color: '#E0E7FF',
+    color: '#E6F9F0',
     fontSize: 12,
     marginTop: 4,
     lineHeight: 16
@@ -182,13 +182,13 @@ const styles = StyleSheet.create({
     color: '#111827'
   },
   openPill: {
-    backgroundColor: Colors.light.primaryLight,
+    backgroundColor: '#DEF7EC',
     paddingHorizontal: 10,
     paddingVertical: 2,
     borderRadius: 999
   },
   openPillText: {
-    color: Colors.light.primary,
+    color: '#07C160',
     fontSize: 11,
     fontWeight: '800'
   },
