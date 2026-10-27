@@ -1,24 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Sparkles, Gamepad2, Car, Utensils, CloudSun } from 'lucide-react-native';
 import { Colors } from '../../../src/theme/tokens';
-import { api } from '../../../src/services/api';
+
+const miniAppsList = [
+  {
+    id: 'app_1',
+    appKey: 'jump-2048',
+    name: 'Jump 2048 Game',
+    category: 'Gaming',
+    usersCount: '1.2M',
+    description: 'Casual puzzle merging game. Instant launch without installation.'
+  },
+  {
+    id: 'app_2',
+    appKey: 'omni-ride',
+    name: 'Omni Ride Hailing',
+    category: 'Travel & Mobility',
+    usersCount: '850K',
+    description: 'On-demand taxi and electric car booking with WeChat Pay split bill.'
+  },
+  {
+    id: 'app_3',
+    appKey: 'omni-eats',
+    name: 'Omni Eats Gourmet',
+    category: 'Food & Dining',
+    usersCount: '2.4M',
+    description: 'Order takeout, view artisanal restaurant menus, and earn WeChat points.'
+  },
+  {
+    id: 'app_4',
+    appKey: 'weather',
+    name: 'City Weather Forecast',
+    category: 'Utilities',
+    usersCount: '500K',
+    description: 'Live meteorological updates, air quality index, and rain radar.'
+  }
+];
 
 export default function ServicesScreen() {
-  const [miniApps, setMiniApps] = useState<any[]>([]);
-
-  useEffect(() => {
-    loadMiniApps();
-  }, []);
-
-  const loadMiniApps = async () => {
-    try {
-      const res = await api.request('/services/mini-apps');
-      if (res.miniApps) setMiniApps(res.miniApps);
-    } catch (e) {
-      console.warn(e);
-    }
-  };
+  const router = useRouter();
 
   const getIcon = (key: string) => {
     switch (key) {
@@ -36,7 +58,7 @@ export default function ServicesScreen() {
       </View>
 
       <FlatList
-        data={miniApps}
+        data={miniAppsList}
         keyExtractor={item => item.id}
         ListHeaderComponent={() => (
           <View style={styles.banner}>
@@ -51,7 +73,11 @@ export default function ServicesScreen() {
           </View>
         )}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.appCard}>
+          <TouchableOpacity
+            style={styles.appCard}
+            activeOpacity={0.7}
+            onPress={() => router.push(`/mini-app/${item.appKey}`)}
+          >
             <View style={styles.iconContainer}>
               {getIcon(item.appKey)}
             </View>

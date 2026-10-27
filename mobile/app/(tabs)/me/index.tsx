@@ -1,71 +1,59 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, SafeAreaView, ScrollView, Modal } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, SafeAreaView, ScrollView, Modal, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { QrCode, CreditCard, Bookmark, Image as ImageIcon, Smile, Settings, ChevronRight } from 'lucide-react-native';
 import { Colors } from '../../../src/theme/tokens';
-import { api } from '../../../src/services/api';
+import { useApp } from '../../../src/context/AppContext';
 import { MyQrCard } from '../../../src/components/MyQrCard';
 
 export default function MeScreen() {
-  const [profile, setProfile] = useState<any>({
-    displayName: "Alex Chen (陈博)",
-    username: "alex_chen",
-    region: "Shenzhen, Guangdong",
-    bio: "Building next-gen super apps 🚀"
-  });
-  const [balanceFormatted, setBalanceFormatted] = useState("1,888.50");
+  const router = useRouter();
+  const { user, walletBalanceFormatted } = useApp();
   const [showMyQr, setShowMyQr] = useState(false);
-
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
-    try {
-      const res = await api.request('/users/me');
-      if (res.user) {
-        if (res.user.profile) setProfile(res.user.profile);
-        if (res.user.wallet) setBalanceFormatted(res.user.wallet.balanceFormatted);
-      }
-    } catch (e) {
-      console.warn(e);
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <Image
-            source={{ uri: profile.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200' }}
-            style={styles.avatar}
-          />
+          <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
           <View style={styles.profileText}>
-            <Text style={styles.displayName}>{profile.displayName}</Text>
-            <Text style={styles.wechatId}>WeChat ID: {profile.username}</Text>
-            <Text style={styles.region}>📍 {profile.region || 'Global'}</Text>
+            <Text style={styles.displayName}>{user.displayName}</Text>
+            <Text style={styles.wechatId}>WeChat ID: {user.username}</Text>
+            <Text style={styles.region}>📍 {user.region}</Text>
           </View>
 
-          <TouchableOpacity style={styles.qrBtn} onPress={() => setShowMyQr(true)}>
+          <TouchableOpacity
+            style={styles.qrBtn}
+            onPress={() => setShowMyQr(true)}
+          >
             <QrCode size={22} color="#6B7280" />
           </TouchableOpacity>
         </View>
 
         {/* WeChat Pay Services Row */}
         <View style={styles.groupCard}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => router.push('/wallet')}
+          >
             <View style={[styles.iconBox, { backgroundColor: Colors.light.primary }]}>
               <CreditCard size={18} color="#FFFFFF" />
             </View>
             <Text style={styles.rowLabel}>Services / WeChat Pay (微信支付)</Text>
-            <Text style={styles.balanceText}>¥{balanceFormatted}</Text>
+            <Text style={styles.balanceText}>¥{walletBalanceFormatted}</Text>
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
         </View>
 
         {/* Favorites & Moments */}
         <View style={styles.groupCard}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => Alert.alert('Favorites (收藏)', 'Your saved messages, articles, and voice notes')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#F59E0B' }]}>
               <Bookmark size={18} color="#FFFFFF" />
             </View>
@@ -73,7 +61,11 @@ export default function MeScreen() {
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => router.push('/moments')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#3B82F6' }]}>
               <ImageIcon size={18} color="#FFFFFF" />
             </View>
@@ -81,7 +73,11 @@ export default function MeScreen() {
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => Alert.alert('Sticker Gallery (表情包)', 'Custom animated stickers and memes')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#EC4899' }]}>
               <Smile size={18} color="#FFFFFF" />
             </View>
@@ -92,7 +88,11 @@ export default function MeScreen() {
 
         {/* Settings */}
         <View style={[styles.groupCard, { marginBottom: 30 }]}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => Alert.alert('Settings', 'Account security, notifications, and language (English / 简体中文)')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#64748B' }]}>
               <Settings size={18} color="#FFFFFF" />
             </View>
@@ -113,9 +113,9 @@ export default function MeScreen() {
               <Text style={styles.modalCloseText}>✕ Close</Text>
             </TouchableOpacity>
             <MyQrCard
-              user={profile}
-              qrToken={`omnichat_qr_user_1_identity`}
-              onRefresh={() => loadProfile()}
+              user={user}
+              qrToken={`omnichat_qr_${user.username}_identity`}
+              onRefresh={() => {}}
             />
           </View>
         </View>

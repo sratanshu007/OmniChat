@@ -1,37 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
-import { UserPlus, QrCode, Award, Users, ChevronRight } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  SafeAreaView,
+  Modal
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { UserPlus, QrCode, Award, Users, ChevronRight, Check } from 'lucide-react-native';
 import { Colors } from '../../../src/theme/tokens';
-import { api } from '../../../src/services/api';
+import { useApp } from '../../../src/context/AppContext';
 import { QrCameraScanner } from '../../../src/components/QrCameraScanner';
 import { MyQrCard } from '../../../src/components/MyQrCard';
 
 export default function ContactsScreen() {
-  const [friends, setFriends] = useState<any[]>([]);
-  const [friendReqCount, setFriendReqCount] = useState(0);
+  const router = useRouter();
+  const { user, friends, friendRequests, acceptFriendRequest } = useApp();
+
   const [showScanner, setShowScanner] = useState(false);
   const [showMyQr, setShowMyQr] = useState(false);
-  const [myProfile, setMyProfile] = useState<any>({
-    displayName: "Alex Chen (陈博)",
-    username: "alex_chen",
-    region: "Shenzhen, Guangdong"
-  });
-
-  useEffect(() => {
-    loadContacts();
-  }, []);
-
-  const loadContacts = async () => {
-    try {
-      const res = await api.request('/friends');
-      if (res.friends) setFriends(res.friends);
-
-      const reqRes = await api.getFriendRequests();
-      if (reqRes.incoming) setFriendReqCount(reqRes.incoming.length);
-    } catch (e) {
-      console.warn(e);
-    }
-  };
+  const [showRequestsModal, setShowRequestsModal] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -49,14 +40,17 @@ export default function ContactsScreen() {
         ListHeaderComponent={() => (
           <View style={styles.systemRowsContainer}>
             {/* New Friends */}
-            <TouchableOpacity style={styles.sysRow} onPress={() => setShowScanner(true)}>
+            <TouchableOpacity
+              style={styles.sysRow}
+              onPress={() => setShowRequestsModal(true)}
+            >
               <View style={[styles.sysIconBox, { backgroundColor: '#FA9D3B' }]}>
                 <UserPlus size={20} color="#FFFFFF" />
               </View>
               <Text style={styles.sysRowLabel}>New Friends (新的朋友)</Text>
-              {friendReqCount > 0 && (
+              {friendRequests.length > 0 && (
                 <View style={styles.reqBadge}>
-                  <Text style={styles.reqBadgeText}>{friendReqCount}</Text>
+                  <Text style={styles.reqBadgeText}>{friendRequests.length}</Text>
                 </View>
               )}
               <ChevronRight size={18} color="#9CA3AF" />
@@ -90,16 +84,17 @@ export default function ContactsScreen() {
             </TouchableOpacity>
 
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionHeaderText}>ALL FRIENDS ({friends.length})</Text>
+              <Text style={styles.sectionHeaderText}>ALL CONTACTS ({friends.length})</Text>
             </View>
           </View>
         )}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.contactItem}>
-            <Image
-              source={{ uri: item.avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120' }}
-              style={styles.contactAvatar}
-            />
+          <TouchableOpacity
+            style={styles.contactItem}
+            activeOpacity={0.7}
+            onPress={() => router.push(`/contact/${item.id}`)}
+          >
+            <Image source={{ uri: item.avatarUrl }} style={styles.contactAvatar} />
             <View style={styles.contactInfo}>
               <Text style={styles.contactName}>{item.displayName}</Text>
               <Text style={styles.contactUsername}>WeChat ID: {item.username}</Text>
@@ -108,13 +103,52 @@ export default function ContactsScreen() {
         )}
       />
 
+      {/* Friend Requests Modal */}
+      <Modal visible={showRequestsModal} animationType="slide">
+        <SafeAreaView style={styles.requestsModalContainer}>
+          <View style={styles.requestsHeader}>
+            <TouchableOpacity onPress={() => setShowRequestsModal(false)}>
+              <Text style={styles.backLinkText}>✕ Close</Text>
+            </TouchableOpacity>
+            <Text style={styles.requestsTitle}>Friend Requests</Text>
+            <View style={{ width: 40 }} />
+          </View>
+
+          {friendRequests.length === 0 ? (
+            <View style={styles.emptyRequests}>
+              <Text style={styles.emptyText}>No pending friend requests</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={friendRequests}
+              keyExtractor={item => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.requestCard}>
+                  <Image source={{ uri: item.senderAvatar }} style={styles.reqAvatar} />
+                  <View style={styles.reqInfo}>
+                    <Text style={styles.reqSenderName}>{item.senderName}</Text>
+                    <Text style={styles.reqMessage}>{item.message}</Text>
+                    <Text style={styles.reqTime}>{item.time}</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.acceptBtn}
+                    onPress={() => acceptFriendRequest(item.id)}
+                  >
+                    <Check size={16} color="#FFFFFF" />
+                    <Text style={styles.acceptBtnText}>Accept</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+          )}
+        </SafeAreaView>
+      </Modal>
+
       {/* QR Camera Scanner Modal */}
       <Modal visible={showScanner} animationType="slide">
         <QrCameraScanner
           onClose={() => setShowScanner(false)}
-          onFriendAdded={() => {
-            loadContacts();
-          }}
+          onFriendAdded={() => setShowScanner(false)}
         />
       </Modal>
 
@@ -129,9 +163,9 @@ export default function ContactsScreen() {
               <Text style={styles.modalCloseText}>✕ Close</Text>
             </TouchableOpacity>
             <MyQrCard
-              user={myProfile}
-              qrToken={`omnichat_qr_user_1_identity`}
-              onRefresh={() => loadContacts()}
+              user={user}
+              qrToken={`omnichat_qr_${user.username}_identity`}
+              onRefresh={() => {}}
             />
           </View>
         </View>
@@ -251,6 +285,87 @@ const styles = StyleSheet.create({
   modalCloseText: {
     color: '#FFFFFF',
     fontSize: 15,
+    fontWeight: '700'
+  },
+  requestsModalContainer: {
+    flex: 1,
+    backgroundColor: '#F9FAFB'
+  },
+  requestsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  backLinkText: {
+    fontSize: 15,
+    color: '#4B5563',
+    fontWeight: '600'
+  },
+  requestsTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#111827'
+  },
+  emptyRequests: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emptyText: {
+    color: '#9CA3AF',
+    fontSize: 15
+  },
+  requestCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    padding: 14,
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  reqAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: 12
+  },
+  reqInfo: {
+    flex: 1
+  },
+  reqSenderName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827'
+  },
+  reqMessage: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2
+  },
+  reqTime: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    marginTop: 4
+  },
+  acceptBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#07C160',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6
+  },
+  acceptBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '700'
   }
 });

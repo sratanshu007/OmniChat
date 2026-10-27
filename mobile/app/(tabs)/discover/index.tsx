@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView, ScrollView, Modal, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Camera, Video, QrCode, Smartphone, Globe, Search, Sparkles, ChevronRight } from 'lucide-react-native';
 import { Colors } from '../../../src/theme/tokens';
+import { useApp } from '../../../src/context/AppContext';
 import { QrCameraScanner } from '../../../src/components/QrCameraScanner';
 
 export default function DiscoverScreen() {
+  const router = useRouter();
+  const { moments } = useApp();
   const [showScanner, setShowScanner] = useState(false);
+
+  const latestMomentAuthorAvatar = moments[0]?.authorAvatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -16,16 +22,17 @@ export default function DiscoverScreen() {
       <ScrollView style={styles.content}>
         {/* Group 1: Moments */}
         <View style={styles.groupCard}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => router.push('/moments')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#3B82F6' }]}>
               <Camera size={18} color="#FFFFFF" />
             </View>
             <Text style={styles.rowLabel}>Moments (朋友圈)</Text>
             <View style={styles.momentsPreview}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100' }}
-                style={styles.previewAvatar}
-              />
+              <Image source={{ uri: latestMomentAuthorAvatar }} style={styles.previewAvatar} />
               <View style={styles.redDot} />
             </View>
             <ChevronRight size={18} color="#9CA3AF" />
@@ -34,7 +41,11 @@ export default function DiscoverScreen() {
 
         {/* Group 2: Channels */}
         <View style={styles.groupCard}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => Alert.alert('Channels (视频号)', 'Short video feeds similar to WeChat Channels')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#F97316' }]}>
               <Video size={18} color="#FFFFFF" />
             </View>
@@ -46,7 +57,11 @@ export default function DiscoverScreen() {
 
         {/* Group 3: Scan & Shake */}
         <View style={styles.groupCard}>
-          <TouchableOpacity style={styles.row} onPress={() => setShowScanner(true)}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => setShowScanner(true)}
+          >
             <View style={[styles.iconBox, { backgroundColor: Colors.light.primary }]}>
               <QrCode size={18} color="#FFFFFF" />
             </View>
@@ -54,7 +69,11 @@ export default function DiscoverScreen() {
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => Alert.alert('Shake (摇一摇)', 'Looking for nearby people who are shaking phones...')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#10B981' }]}>
               <Smartphone size={18} color="#FFFFFF" />
             </View>
@@ -65,7 +84,11 @@ export default function DiscoverScreen() {
 
         {/* Group 4: Top Stories & Search */}
         <View style={styles.groupCard}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => Alert.alert('Top Stories', 'Trending articles read by friends in WeChat')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#EAB308' }]}>
               <Globe size={18} color="#FFFFFF" />
             </View>
@@ -73,7 +96,11 @@ export default function DiscoverScreen() {
             <ChevronRight size={18} color="#9CA3AF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => Alert.alert('Search (搜一搜)', 'Global WeChat Search index')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#EF4444' }]}>
               <Search size={18} color="#FFFFFF" />
             </View>
@@ -84,7 +111,11 @@ export default function DiscoverScreen() {
 
         {/* Group 5: Mini Programs */}
         <View style={[styles.groupCard, { marginBottom: 30 }]}>
-          <TouchableOpacity style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => router.push('/(tabs)/services')}
+          >
             <View style={[styles.iconBox, { backgroundColor: '#8B5CF6' }]}>
               <Sparkles size={18} color="#FFFFFF" />
             </View>

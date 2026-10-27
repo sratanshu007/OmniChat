@@ -1,29 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
-import { Search, Plus, Pin } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  SafeAreaView,
+  Modal
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { Search, Plus, Pin, QrCode, UserPlus } from 'lucide-react-native';
 import { Colors } from '../../../src/theme/tokens';
-import { api } from '../../../src/services/api';
+import { useApp } from '../../../src/context/AppContext';
+import { QrCameraScanner } from '../../../src/components/QrCameraScanner';
 
 export default function ChatsScreen() {
-  const [conversations, setConversations] = useState<any[]>([]);
+  const router = useRouter();
+  const { conversations, addFriendByUsernameOrQR } = useApp();
   const [search, setSearch] = useState('');
+  const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
-  useEffect(() => {
-    loadChats();
-  }, []);
-
-  const loadChats = async () => {
-    try {
-      const res = await api.getConversations();
-      if (res.conversations) setConversations(res.conversations);
-    } catch (e) {
-      console.warn(e);
-    }
-  };
-
-  const filtered = conversations.filter(c =>
-    (c.title || '').toLowerCase().includes(search.toLowerCase()) ||
-    (c.lastMessageText || '').toLowerCase().includes(search.toLowerCase())
+  const filtered = conversations.filter(
+    c =>
+      (c.title || '').toLowerCase().includes(search.toLowerCase()) ||
+      (c.lastMessageText || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -31,10 +34,40 @@ export default function ChatsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>OmniChat (微信)</Text>
-        <TouchableOpacity style={styles.headerPlusBtn}>
+        <TouchableOpacity
+          style={styles.headerPlusBtn}
+          onPress={() => setShowPlusMenu(!showPlusMenu)}
+        >
           <Plus size={22} color="#111827" />
         </TouchableOpacity>
       </View>
+
+      {/* Dropdown Plus Menu */}
+      {showPlusMenu && (
+        <View style={styles.plusMenuDropdown}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              setShowPlusMenu(false);
+              setShowScanner(true);
+            }}
+          >
+            <QrCode size={18} color="#FFFFFF" />
+            <Text style={styles.menuItemText}>Scan QR Code (扫一扫)</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => {
+              setShowPlusMenu(false);
+              router.push('/(tabs)/contacts');
+            }}
+          >
+            <UserPlus size={18} color="#FFFFFF" />
+            <Text style={styles.menuItemText}>Add Contacts (添加朋友)</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Search Input */}
       <View style={styles.searchContainer}>
@@ -55,12 +88,13 @@ export default function ChatsScreen() {
         data={filtered}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={[styles.chatItem, item.isPinned && styles.pinnedItem]}>
+          <TouchableOpacity
+            style={[styles.chatItem, item.isPinned && styles.pinnedItem]}
+            activeOpacity={0.7}
+            onPress={() => router.push(`/chat/${item.id}`)}
+          >
             <View style={styles.avatarContainer}>
-              <Image
-                source={{ uri: item.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120' }}
-                style={styles.avatar}
-              />
+              <Image source={{ uri: item.avatarUrl }} style={styles.avatar} />
               {item.unreadCount > 0 && (
                 <View style={styles.unreadBadge}>
                   <Text style={styles.unreadText}>{item.unreadCount}</Text>
@@ -71,9 +105,7 @@ export default function ChatsScreen() {
             <View style={styles.chatInfo}>
               <View style={styles.chatInfoHeader}>
                 <Text style={styles.chatTitle}>{item.title}</Text>
-                <Text style={styles.chatTime}>
-                  {new Date(item.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
+                <Text style={styles.chatTime}>{item.lastMessageAt}</Text>
               </View>
 
               <View style={styles.chatSubtitleRow}>
@@ -92,6 +124,14 @@ export default function ChatsScreen() {
           </TouchableOpacity>
         )}
       />
+
+      {/* Scanner Modal */}
+      <Modal visible={showScanner} animationType="slide">
+        <QrCameraScanner
+          onClose={() => setShowScanner(false)}
+          onFriendAdded={() => setShowScanner(false)}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -118,6 +158,34 @@ const styles = StyleSheet.create({
   },
   headerPlusBtn: {
     padding: 6
+  },
+  plusMenuDropdown: {
+    position: 'absolute',
+    top: 55,
+    right: 12,
+    backgroundColor: '#4B4B4B',
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 0.5,
+    borderColor: '#606060'
+  },
+  menuItemText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600'
   },
   searchContainer: {
     padding: 8,
