@@ -3,9 +3,10 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios"
+    "start": "expo start -c",
+    "android": "expo start --android -c",
+    "ios": "expo start --ios -c",
+    "postinstall": "mkdir -p node_modules/expo/node_modules && ln -sf ../../expo-asset node_modules/expo/node_modules/expo-asset && ln -sf ../../expo-font node_modules/expo/node_modules/expo-font"
   },
   "dependencies": {
     "expo": "~57.0.31",
