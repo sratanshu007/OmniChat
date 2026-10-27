@@ -1,0 +1,13 @@
+{
+  "name": "omnichat-superapp-root",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "server": "cd backend && npm run dev",
+    "client": "cd client && npm run dev",
+    "admin": "cd admin-dashboard && npm run dev",
+    "dev": "node start-all.js",
+    "test": "cd backend && npm test"
+  }
+}

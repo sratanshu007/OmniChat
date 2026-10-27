@@ -1,0 +1,597 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// 1. AUTHENTICATION & USERS
+// ==========================================
+
+enum UserRole {
+  USER
+  OFFICIAL_CREATOR
+  MODERATOR
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+model User {
+  id              String        @id @default(uuid())
+  phoneNumber     String?       @unique
+  email           String?       @unique
+  username        String        @unique
+  passwordHash    String?
+  role            UserRole      @default(USER)
+  status          AccountStatus @default(ACTIVE)
+  isPhoneVerified Boolean       @default(false)
+  isEmailVerified Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  profile           UserProfile?
+  sessions          UserSession[]
+  devices           UserDevice[]
+  qrTokens          QRToken[]
+  sentFriendReqs    FriendRequest[]     @relation("SentFriendRequests")
+  receivedFriendReqs FriendRequest[]    @relation("ReceivedFriendRequests")
+  friendships1      Friendship[]        @relation("UserFriendships1")
+  friendships2      Friendship[]        @relation("UserFriendships2")
+  blockedUsers      Block[]             @relation("UserBlocks")
+  blockedByUsers    Block[]             @relation("BlockedUsers")
+  conversations     ConversationMember[]
+  messages          Message[]
+  messageReceipts   MessageReceipt[]
+  messageReactions  MessageReaction[]
+  posts             Post[]
+  postLikes         PostLike[]
+  postComments      PostComment[]
+  notifications     Notification[]
+  pushTokens        PushDeviceToken[]
+  wallet            WalletAccount?
+  callsInitiated    Call[]              @relation("CallCaller")
+  callParticipations CallParticipant[]
+  reportsFiled      Report[]            @relation("ReportsFiled")
+  reportsAgainst    Report[]            @relation("ReportsAgainst")
+  businessFollows   BusinessFollower[]
+
+  @@index([phoneNumber])
+  @@index([email])
+  @@index([username])
+}
+
+model UserProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName    String
+  avatarUrl      String?
+  bio            String?
+  region         String?
+  gender         String?
+  publicQrId     String   @unique @default(uuid())
+  allowSearchByPhone Boolean @default(true)
+  allowSearchById    Boolean @default(true)
+  onlineStatusPrivacy String @default("everyone") // everyone, friends, nobody
+  readReceiptsEnabled Boolean @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model UserSession {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokenHash String
+  ipAddress    String?
+  userAgent    String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+model UserDevice {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId   String
+  platform   String   // 'ios' | 'android' | 'web'
+  appVersion String?
+  lastActive DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, deviceId])
+}
+
+model VerificationChallenge {
+  id          String   @id @default(uuid())
+  identifier  String   // phone or email
+  type        String   // 'phone_otp' | 'email_otp' | 'password_reset'
+  codeHash    String
+  attempts    Int      @default(0)
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([identifier, type])
+}
+
+// ==========================================
+// 2. CONTACTS & SECURE QR IDENTITY
+// ==========================================
+
+model QRToken {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String    @unique
+  isRevoked    Boolean   @default(false)
+  expiresAt    DateTime?
+  scanCount    Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  @@index([tokenHash])
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+model FriendRequest {
+  id          String              @id @default(uuid())
+  senderId    String
+  sender      User                @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User                @relation("ReceivedFriendRequests", fields: [recipientId], references: [id], onDelete: Cascade)
+  source      String              @default("qr_scan") // 'qr_scan', 'search', 'group', 'card'
+  message     String?
+  status      FriendRequestStatus @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([senderId, recipientId])
+  @@index([recipientId, status])
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  userId1   String
+  user1     User     @relation("UserFriendships1", fields: [userId1], references: [id], onDelete: Cascade)
+  userId2   String
+  user2     User     @relation("UserFriendships2", fields: [userId2], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId1, userId2])
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String
+  blocker   User     @relation("UserBlocks", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("BlockedUsers", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+}
+
+model Report {
+  id         String   @id @default(uuid())
+  reporterId String
+  reporter   User     @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType String   // 'user', 'message', 'post', 'comment'
+  targetId   String
+  targetUserId String?
+  targetUser User?    @relation("ReportsAgainst", fields: [targetUserId], references: [id])
+  reason     String
+  details    String?
+  status     String   @default("OPEN") // 'OPEN', 'RESOLVED', 'DISMISSED'
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ==========================================
+// 3. MESSAGING & CHATS
+// ==========================================
+
+enum ConversationType {
+  DIRECT
+  GROUP
+  OFFICIAL
+}
+
+model Conversation {
+  id          String           @id @default(uuid())
+  type        ConversationType @default(DIRECT)
+  title       String?
+  avatarUrl   String?
+  description String?
+  isPinned    Boolean          @default(false)
+  lastMessageText String?
+  lastMessageAt DateTime       @default(now())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  members     ConversationMember[]
+  messages    Message[]
+
+  @@index([lastMessageAt])
+}
+
+model ConversationMember {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("MEMBER") // 'ADMIN', 'MEMBER'
+  isMuted        Boolean      @default(false)
+  isPinned       Boolean      @default(false)
+  unreadCount    Int          @default(0)
+  joinedAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  VOICE
+  DOCUMENT
+  LOCATION
+  LUCKY_PACKET
+  CALL_LOG
+  SYSTEM
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  type           MessageType  @default(TEXT)
+  content        String
+  metadata       Json?        // duration for voice, coordinates for location, packet details
+  replyToId      String?
+  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies        Message[]    @relation("MessageReplies")
+  isEdited       Boolean      @default(false)
+  isDeleted      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  receipts       MessageReceipt[]
+  attachments    MessageAttachment[]
+  reactions      MessageReaction[]
+
+  @@index([conversationId, createdAt])
+}
+
+model MessageReceipt {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   // 'DELIVERED', 'READ'
+  timestamp DateTime @default(now())
+
+  @@unique([messageId, userId, status])
+}
+
+model MessageAttachment {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  fileUrl   String
+  fileName  String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emoji     String
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, userId, emoji])
+}
+
+// ==========================================
+// 4. MOMENTS SOCIAL FEED
+// ==========================================
+
+enum PostAudience {
+  PUBLIC
+  FRIENDS_ONLY
+  PRIVATE
+}
+
+model Post {
+  id           String        @id @default(uuid())
+  authorId     String
+  author       User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content      String?
+  locationName String?
+  audience     PostAudience  @default(FRIENDS_ONLY)
+  isDeleted    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  media        PostMedia[]
+  likes        PostLike[]
+  comments     PostComment[]
+
+  @@index([authorId, createdAt])
+}
+
+model PostMedia {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mediaUrl  String
+  mediaType String   // 'IMAGE' | 'VIDEO'
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model PostLike {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model PostComment {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([postId, createdAt])
+}
+
+// ==========================================
+// 5. CALLS & WEBRTC SIGNALING
+// ==========================================
+
+enum CallType {
+  VOICE
+  VIDEO
+}
+
+enum CallStatus {
+  RINGING
+  ACCEPTED
+  DECLINED
+  MISSED
+  ENDED
+}
+
+model Call {
+  id          String       @id @default(uuid())
+  callerId    String
+  caller      User         @relation("CallCaller", fields: [callerId], references: [id], onDelete: Cascade)
+  type        CallType     @default(VOICE)
+  status      CallStatus   @default(RINGING)
+  durationSec Int          @default(0)
+  startedAt   DateTime     @default(now())
+  endedAt     DateTime?
+
+  participants CallParticipant[]
+  events       CallEvent[]
+}
+
+model CallParticipant {
+  id        String   @id @default(uuid())
+  callId    String
+  call      Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("RECEIVER") // 'CALLER', 'RECEIVER'
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+
+  @@unique([callId, userId])
+}
+
+model CallEvent {
+  id        String   @id @default(uuid())
+  callId    String
+  call      Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+  eventType String
+  payload   Json?
+  timestamp DateTime @default(now())
+}
+
+// ==========================================
+// 6. NOTIFICATIONS & DEVICES
+// ==========================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  type      String   // 'friend_request', 'message', 'call', 'moment_like', 'wallet'
+  data      Json?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+model PushDeviceToken {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token      String   @unique
+  platform   String   // 'ios', 'android', 'web'
+  createdAt  DateTime @default(now())
+}
+
+// ==========================================
+// 7. BUSINESSES & MINI APPS
+// ==========================================
+
+model BusinessAccount {
+  id          String   @id @default(uuid())
+  name        String
+  handle      String   @unique
+  category    String
+  avatarUrl   String?
+  coverUrl    String?
+  description String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  followers   BusinessFollower[]
+  announcements Announcement[]
+}
+
+model BusinessFollower {
+  id         String          @id @default(uuid())
+  businessId String
+  business   BusinessAccount @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  @@unique([businessId, userId])
+}
+
+model Announcement {
+  id          String          @id @default(uuid())
+  businessId  String
+  business    BusinessAccount @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title       String
+  summary     String?
+  content     String
+  coverUrl    String?
+  viewsCount  Int             @default(0)
+  createdAt   DateTime        @default(now())
+}
+
+model MiniApp {
+  id          String   @id @default(uuid())
+  appKey      String   @unique
+  name        String
+  category    String
+  iconUrl     String?
+  developer   String
+  description String
+  rating      Float    @default(5.0)
+  usersCount  String   @default("10k+")
+  isFeatured  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+// ==========================================
+// 8. WALLET & IMMUTABLE LEDGER
+// ==========================================
+
+model WalletAccount {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balanceCents BigInt   @default(100000) // Integer minor currency units (e.g. 1000.00 = 100000 cents)
+  currency     String   @default("USD")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transactions WalletTransaction[]
+  orders       PaymentOrder[]
+}
+
+enum TransactionType {
+  CREDIT_TOPUP
+  DEBIT_PAYMENT
+  P2P_TRANSFER
+  LUCKY_PACKET_SEND
+  LUCKY_PACKET_CLAIM
+  REFUND
+}
+
+model WalletTransaction {
+  id              String          @id @default(uuid())
+  walletId        String
+  wallet          WalletAccount   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type            TransactionType
+  amountCents     BigInt
+  balanceAfterCents BigInt
+  idempotencyKey  String          @unique
+  reference       String?
+  description     String
+  metadata        Json?
+  createdAt       DateTime        @default(now())
+
+  @@index([walletId, createdAt])
+}
+
+model PaymentOrder {
+  id             String        @id @default(uuid())
+  walletId       String
+  wallet         WalletAccount @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  provider       String        // 'stripe', 'mock_sandbox'
+  orderNumber    String        @unique
+  amountCents    BigInt
+  currency       String        @default("USD")
+  status         String        @default("PENDING") // 'PENDING', 'SUCCEEDED', 'FAILED'
+  idempotencyKey String        @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+// ==========================================
+// 9. ADMINISTRATION & AUDIT
+// ==========================================
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("SUPERADMIN") // 'SUPERADMIN', 'MODERATOR', 'FINANCE'
+  createdAt    DateTime @default(now())
+
+  auditLogs    AdminAuditLog[]
+}
+
+model AdminAuditLog {
+  id          String    @id @default(uuid())
+  adminId     String
+  admin       AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  action      String    // 'USER_SUSPEND', 'POST_REMOVE', 'REFUND_APPROVE'
+  targetType  String
+  targetId    String
+  details     Json?
+  createdAt   DateTime  @default(now())
+}

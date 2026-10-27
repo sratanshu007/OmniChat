@@ -1,0 +1,256 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
+import { UserPlus, QrCode, Award, Users, ChevronRight } from 'lucide-react-native';
+import { Colors } from '../../../src/theme/tokens';
+import { api } from '../../../src/services/api';
+import { QrCameraScanner } from '../../../src/components/QrCameraScanner';
+import { MyQrCard } from '../../../src/components/MyQrCard';
+
+export default function ContactsScreen() {
+  const [friends, setFriends] = useState<any[]>([]);
+  const [friendReqCount, setFriendReqCount] = useState(0);
+  const [showScanner, setShowScanner] = useState(false);
+  const [showMyQr, setShowMyQr] = useState(false);
+  const [myProfile, setMyProfile] = useState<any>({
+    displayName: "Alex Chen (陈博)",
+    username: "alex_chen",
+    region: "Shenzhen, Guangdong"
+  });
+
+  useEffect(() => {
+    loadContacts();
+  }, []);
+
+  const loadContacts = async () => {
+    try {
+      const res = await api.request('/friends');
+      if (res.friends) setFriends(res.friends);
+
+      const reqRes = await api.getFriendRequests();
+      if (reqRes.incoming) setFriendReqCount(reqRes.incoming.length);
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Contacts (通讯录)</Text>
+        <TouchableOpacity onPress={() => setShowScanner(true)}>
+          <QrCode size={22} color="#111827" />
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={friends}
+        keyExtractor={item => item.id}
+        ListHeaderComponent={() => (
+          <View style={styles.systemRowsContainer}>
+            {/* New Friends */}
+            <TouchableOpacity style={styles.sysRow} onPress={() => setShowScanner(true)}>
+              <View style={[styles.sysIconBox, { backgroundColor: '#FA9D3B' }]}>
+                <UserPlus size={20} color="#FFFFFF" />
+              </View>
+              <Text style={styles.sysRowLabel}>New Friends (新的朋友)</Text>
+              {friendReqCount > 0 && (
+                <View style={styles.reqBadge}>
+                  <Text style={styles.reqBadgeText}>{friendReqCount}</Text>
+                </View>
+              )}
+              <ChevronRight size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            {/* Scan QR Code */}
+            <TouchableOpacity style={styles.sysRow} onPress={() => setShowScanner(true)}>
+              <View style={[styles.sysIconBox, { backgroundColor: Colors.light.primary }]}>
+                <QrCode size={20} color="#FFFFFF" />
+              </View>
+              <Text style={styles.sysRowLabel}>Scan QR Code (扫一扫)</Text>
+              <ChevronRight size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            {/* My QR Code Card */}
+            <TouchableOpacity style={styles.sysRow} onPress={() => setShowMyQr(true)}>
+              <View style={[styles.sysIconBox, { backgroundColor: '#3B82F6' }]}>
+                <Users size={20} color="#FFFFFF" />
+              </View>
+              <Text style={styles.sysRowLabel}>My QR Code (我的名片)</Text>
+              <ChevronRight size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            {/* Official Accounts */}
+            <TouchableOpacity style={styles.sysRow}>
+              <View style={[styles.sysIconBox, { backgroundColor: '#2B82FF' }]}>
+                <Award size={20} color="#FFFFFF" />
+              </View>
+              <Text style={styles.sysRowLabel}>Official Accounts (公众号)</Text>
+              <ChevronRight size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionHeaderText}>ALL FRIENDS ({friends.length})</Text>
+            </View>
+          </View>
+        )}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.contactItem}>
+            <Image
+              source={{ uri: item.avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120' }}
+              style={styles.contactAvatar}
+            />
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactName}>{item.displayName}</Text>
+              <Text style={styles.contactUsername}>WeChat ID: {item.username}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
+
+      {/* QR Camera Scanner Modal */}
+      <Modal visible={showScanner} animationType="slide">
+        <QrCameraScanner
+          onClose={() => setShowScanner(false)}
+          onFriendAdded={() => {
+            loadContacts();
+          }}
+        />
+      </Modal>
+
+      {/* My QR Code Modal */}
+      <Modal visible={showMyQr} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={{ width: '100%', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setShowMyQr(false)}
+            >
+              <Text style={styles.modalCloseText}>✕ Close</Text>
+            </TouchableOpacity>
+            <MyQrCard
+              user={myProfile}
+              qrToken={`omnichat_qr_user_1_identity`}
+              onRefresh={() => loadContacts()}
+            />
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#EDEDED'
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#EDEDED',
+    borderBottomWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111827'
+  },
+  systemRowsContainer: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderColor: '#E5E7EB'
+  },
+  sysRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: '#F3F4F6'
+  },
+  sysIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14
+  },
+  sysRowLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+    flex: 1
+  },
+  reqBadge: {
+    backgroundColor: Colors.light.badgeRed,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    marginRight: 8
+  },
+  reqBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  sectionHeader: {
+    backgroundColor: '#EDEDED',
+    paddingHorizontal: 16,
+    paddingVertical: 6
+  },
+  sectionHeaderText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9CA3AF'
+  },
+  contactItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: '#F3F4F6'
+  },
+  contactAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 8,
+    marginRight: 14
+  },
+  contactInfo: {
+    flex: 1
+  },
+  contactName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111827'
+  },
+  contactUsername: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 2
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalCloseBtn: {
+    alignSelf: 'flex-end',
+    marginRight: 24,
+    marginBottom: 12
+  },
+  modalCloseText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700'
+  }
+});

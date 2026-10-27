@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "OmniChat",
+    "slug": "omnichat-superapp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "omnichat",
+    "splash": {
+      "backgroundColor": "#07C160"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.omnichat.superapp",
+      "infoPlist": {
+        "NSCameraUsageDescription": "OmniChat needs camera access to scan friend QR codes and video calls.",
+        "NSMicrophoneUsageDescription": "OmniChat needs microphone access to record voice notes and audio calls.",
+        "NSPhotoLibraryUsageDescription": "OmniChat needs photo library access to share moments and save QR codes."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#07C160"
+      },
+      "package": "io.omnichat.superapp",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE"
+      ]
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow OmniChat to access your camera to scan friend QR codes."
+        }
+      ]
+    ]
+  }
+}

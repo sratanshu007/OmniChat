@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: omnichat_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword2026
+      POSTGRES_DB: omnichat
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: omnichat_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: omnichat_backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 5055
+      DATABASE_URL: postgresql://postgres:postgrespassword2026@postgres:5432/omnichat?schema=public
+      JWT_SECRET: omnichat_superapp_jwt_secret_key_2026_production_grade
+      ADMIN_JWT_SECRET: omnichat_superapp_admin_secret_key_2026
+    ports:
+      - "5055:5055"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  admin-dashboard:
+    build:
+      context: ./admin-dashboard
+      dockerfile: Dockerfile
+    container_name: omnichat_admin
+    restart: always
+    ports:
+      - "3031:3031"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
