@@ -3,121 +3,244 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   Modal,
-  TextInput
+  TextInput,
+  Image,
+  Alert,
+  Share
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
   ChevronLeft,
   CreditCard,
   QrCode,
   ArrowDownLeft,
+  ArrowUpRight,
   PlusCircle,
   ShieldCheck,
-  History
+  History,
+  Send,
+  Download,
+  Share2,
+  CheckCircle2,
+  X
 } from 'lucide-react-native';
-import { useApp } from '../../src/context/AppContext';
+import { Colors } from '../../src/theme/tokens';
+import { useApp, WalletTransaction } from '../../src/context/AppContext';
+import { Button } from '../../src/components/Button';
+import { QrCameraScanner } from '../../src/components/QrCameraScanner';
 
 export default function WalletScreen() {
   const router = useRouter();
-  const { walletBalanceFormatted, walletTransactions, topUpWallet } = useApp();
+  const { user, walletBalanceFormatted, walletTransactions, topUpWallet, isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
 
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('500');
 
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferRecipient, setTransferRecipient] = useState('priya@okhdfcbank');
+  const [transferAmount, setTransferAmount] = useState('250');
+  const [transferNote, setTransferNote] = useState('Dinner split 🍛');
+
+  const [showScanner, setShowScanner] = useState(false);
+  const [showReceiveQrModal, setShowReceiveQrModal] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<WalletTransaction | null>(null);
+
   const handleTopUp = () => {
     const val = parseFloat(topUpAmount);
-    if (isNaN(val) || val <= 0) return;
+    if (isNaN(val) || val <= 0) {
+      Alert.alert('Invalid Amount', 'Please enter a valid top-up amount.');
+      return;
+    }
     topUpWallet(val);
     setShowTopUpModal(false);
   };
 
+  const handleExecuteTransfer = () => {
+    const val = parseFloat(transferAmount);
+    if (isNaN(val) || val <= 0) {
+      Alert.alert('Invalid Amount', 'Please enter a valid transfer amount.');
+      return;
+    }
+    topUpWallet(-val);
+    setShowTransferModal(false);
+    Alert.alert(
+      'UPI Payment Successful! ✅',
+      `₹${val.toFixed(2)} sent to ${transferRecipient}.\nRef ID: UPI/CHATINDIA/${Date.now()}`
+    );
+  };
+
+  const handleShareReceipt = async (tx: WalletTransaction) => {
+    try {
+      await Share.share({
+        message: `ChatIndia UPI Payment Receipt\nTitle: ${tx.title}\nAmount: ${tx.amountFormatted}\nDate: ${tx.date}\nStatus: ${tx.status || 'SUCCESS'}\nRef ID: ${tx.refId || 'UPI/CHATINDIA/98214'}`
+      });
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+      {/* Header matching Screen 17 */}
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <ChevronLeft size={26} color="#FFFFFF" />
-          <Text style={styles.backLabel}>Me</Text>
+          <ChevronLeft size={26} color={theme.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>OmniPay & UPI Wallet</Text>
+        <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
+          My Wallet
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.content}>
-        {/* Emerald Hero Balance Card */}
-        <View style={styles.heroCard}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
+        {/* Emerald Hero Balance Card matching Screen 17 */}
+        <View style={[styles.heroCard, { backgroundColor: '#047857' }]}>
           <View style={styles.heroTop}>
-            <Text style={styles.heroLabel}>Total Available Balance</Text>
-            <View style={styles.verifiedBadge}>
-              <ShieldCheck size={14} color="#D1FAE5" />
-              <Text style={styles.verifiedText}>KYC Verified</Text>
-            </View>
-          </View>
-
-          <Text style={styles.balanceBig}>₹{walletBalanceFormatted}</Text>
-
-          <View style={styles.heroActionsRow}>
-            {/* Show QR */}
-            <TouchableOpacity style={styles.heroActionBtn}>
-              <QrCode size={20} color="#07C160" />
-              <Text style={styles.heroActionText}>Receive QR</Text>
-            </TouchableOpacity>
-
-            {/* Top Up */}
+            <Text style={styles.heroLabel}>My Wallet</Text>
             <TouchableOpacity
-              style={styles.heroActionBtn}
+              style={styles.topUpPill}
               onPress={() => setShowTopUpModal(true)}
+              activeOpacity={0.8}
             >
-              <PlusCircle size={20} color="#07C160" />
-              <Text style={styles.heroActionText}>Add Money</Text>
-            </TouchableOpacity>
-
-            {/* Transfer */}
-            <TouchableOpacity style={styles.heroActionBtn}>
-              <ArrowDownLeft size={20} color="#07C160" />
-              <Text style={styles.heroActionText}>UPI Transfer</Text>
+              <Text style={styles.topUpPillText}>Top-Up</Text>
             </TouchableOpacity>
           </View>
+
+          <Text style={styles.balanceBig}>₹ 2,480.00</Text>
+        </View>
+
+        {/* 4 Circular Quick Action Buttons matching Screen 17: Scan & Pay, Send, UPI, Bills */}
+        <View style={[styles.quickActionsContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <TouchableOpacity
+            style={styles.circleActionItem}
+            onPress={() => setShowScanner(true)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.actionCircle, { backgroundColor: '#E8F8F0' }]}>
+              <QrCode size={22} color="#07C160" />
+            </View>
+            <Text style={[styles.actionCircleLabel, { color: theme.textPrimary }]}>
+              Scan & Pay
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.circleActionItem}
+            onPress={() => setShowTransferModal(true)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.actionCircle, { backgroundColor: '#EFF6FF' }]}>
+              <Send size={20} color="#2563EB" />
+            </View>
+            <Text style={[styles.actionCircleLabel, { color: theme.textPrimary }]}>
+              Send
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.circleActionItem}
+            onPress={() => setShowReceiveQrModal(true)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.actionCircle, { backgroundColor: '#F0FDF4' }]}>
+              <CreditCard size={21} color="#059669" />
+            </View>
+            <Text style={[styles.actionCircleLabel, { color: theme.textPrimary }]}>
+              UPI
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.circleActionItem}
+            onPress={() => router.push('/mini-app/bill-pay')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.actionCircle, { backgroundColor: '#FFFBEB' }]}>
+              <History size={20} color="#D97706" />
+            </View>
+            <Text style={[styles.actionCircleLabel, { color: theme.textPrimary }]}>
+              Bills
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Bank Accounts Section */}
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>LINKED BANK ACCOUNTS & UPI</Text>
-          <View style={styles.cardItem}>
+        <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+            LINKED BANK ACCOUNTS & UPI ID
+          </Text>
+
+          <View style={[styles.cardItem, { borderBottomColor: theme.border }]}>
             <View style={[styles.cardIconBox, { backgroundColor: '#1E3A8A' }]}>
               <CreditCard size={18} color="#FFFFFF" />
             </View>
             <View style={styles.cardInfo}>
-              <Text style={styles.bankName}>HDFC Bank Savings Account</Text>
-              <Text style={styles.cardDigits}>Account ending in **** 8821 • Primary UPI</Text>
+              <Text style={[styles.bankName, { color: theme.textPrimary }]}>
+                HDFC Bank Savings Account
+              </Text>
+              <Text style={[styles.cardDigits, { color: theme.textMuted }]}>
+                Account ending in **** 8821 • Primary UPI
+              </Text>
             </View>
-            <Text style={styles.primaryTag}>Primary</Text>
+            <Text style={[styles.primaryTag, { color: theme.primary, backgroundColor: theme.primaryLight }]}>
+              Primary
+            </Text>
+          </View>
+
+          <View style={[styles.cardItem, { borderBottomWidth: 0 }]}>
+            <View style={[styles.cardIconBox, { backgroundColor: '#0070BA' }]}>
+              <QrCode size={18} color="#FFFFFF" />
+            </View>
+            <View style={styles.cardInfo}>
+              <Text style={[styles.bankName, { color: theme.textPrimary }]}>
+                ChatIndia UPI ID
+              </Text>
+              <Text style={[styles.cardDigits, { color: theme.textMuted }]}>
+                {user.upiId}
+              </Text>
+            </View>
+            <Text style={[styles.primaryTag, { color: '#2563EB', backgroundColor: '#EFF6FF' }]}>
+              Active
+            </Text>
           </View>
         </View>
 
         {/* Transactions History List */}
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border, marginBottom: 40 }]}>
           <View style={styles.txHeaderRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <History size={16} color="#6B7280" />
-              <Text style={styles.sectionTitle}>TRANSACTION HISTORY (₹)</Text>
+              <History size={16} color={theme.textMuted} />
+              <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+                TRANSACTION HISTORY
+              </Text>
             </View>
           </View>
 
           {walletTransactions.map(tx => (
-            <View key={tx.id} style={styles.txItem}>
+            <TouchableOpacity
+              key={tx.id}
+              style={[styles.txItem, { borderBottomColor: theme.border }]}
+              onPress={() => setSelectedTx(tx)}
+              activeOpacity={0.7}
+            >
               <View style={styles.txInfo}>
-                <Text style={styles.txTitle}>{tx.title}</Text>
-                <Text style={styles.txDate}>{tx.date}</Text>
+                <Text style={[styles.txTitle, { color: theme.textPrimary }]}>{tx.title}</Text>
+                <Text style={[styles.txDate, { color: theme.textMuted }]}>{tx.date}</Text>
               </View>
-              <Text style={[styles.txAmount, tx.isPositive ? styles.txPositive : styles.txNegative]}>
+              <Text
+                style={[
+                  styles.txAmount,
+                  { color: tx.isPositive ? '#10B981' : theme.textPrimary }
+                ]}
+              >
                 {tx.amountFormatted}
               </Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
@@ -125,14 +248,18 @@ export default function WalletScreen() {
       {/* Top Up Modal */}
       <Modal visible={showTopUpModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Add Money to OmniPay</Text>
-            <Text style={styles.modalSub}>From: HDFC Bank Account (**** 8821)</Text>
+          <View style={[styles.modalCard, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
+              Add Money to Wallet
+            </Text>
+            <Text style={[styles.modalSub, { color: theme.textMuted }]}>
+              Source: HDFC Bank Account (**** 8821)
+            </Text>
 
-            <View style={styles.topUpInputRow}>
-              <Text style={styles.currencyPrefix}>₹</Text>
+            <View style={[styles.topUpInputRow, { borderBottomColor: theme.primary }]}>
+              <Text style={[styles.currencyPrefix, { color: theme.textPrimary }]}>₹</Text>
               <TextInput
-                style={styles.topUpInput}
+                style={[styles.topUpInput, { color: theme.textPrimary }]}
                 keyboardType="decimal-pad"
                 value={topUpAmount}
                 onChangeText={setTopUpAmount}
@@ -140,39 +267,231 @@ export default function WalletScreen() {
             </View>
 
             <View style={styles.presetAmounts}>
-              {['100', '200', '500', '1000'].map(val => (
+              {['100', '200', '500', '1000', '2000'].map(val => (
                 <TouchableOpacity
                   key={val}
                   style={[
                     styles.presetPill,
-                    topUpAmount === val && styles.presetPillActive
+                    { borderColor: theme.border },
+                    topUpAmount === val && { backgroundColor: theme.primary, borderColor: theme.primary }
                   ]}
                   onPress={() => setTopUpAmount(val)}
                 >
                   <Text
                     style={[
                       styles.presetPillText,
-                      topUpAmount === val && styles.presetPillTextActive
+                      { color: topUpAmount === val ? '#FFFFFF' : theme.textPrimary }
                     ]}
                   >
-                    ₹{val}
+                    +₹{val}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <TouchableOpacity style={styles.confirmTopUpBtn} onPress={handleTopUp}>
-              <Text style={styles.confirmTopUpText}>Confirm & Add Money</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cancelModalBtn}
-              onPress={() => setShowTopUpModal(false)}
-            >
-              <Text style={styles.cancelModalText}>Cancel</Text>
-            </TouchableOpacity>
+            <View style={styles.modalBtnRow}>
+              <Button
+                title="Cancel"
+                variant="outline"
+                size="md"
+                onPress={() => setShowTopUpModal(false)}
+                style={{ flex: 1 }}
+                isDark={isDarkMode}
+              />
+              <Button
+                title="Confirm & Pay UPI"
+                variant="primary"
+                size="md"
+                onPress={handleTopUp}
+                style={{ flex: 1 }}
+                isDark={isDarkMode}
+              />
+            </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Direct UPI Transfer Modal */}
+      <Modal visible={showTransferModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
+              Send Money via UPI
+            </Text>
+            <Text style={[styles.modalSub, { color: theme.textMuted }]}>
+              Instant 24x7 Settlement via NPCI UPI
+            </Text>
+
+            <View style={{ marginVertical: 14 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                Recipient UPI ID / Mobile
+              </Text>
+              <TextInput
+                style={[
+                  styles.formField,
+                  { backgroundColor: theme.surfaceSecondary, color: theme.textPrimary, borderColor: theme.border }
+                ]}
+                value={transferRecipient}
+                onChangeText={setTransferRecipient}
+                placeholder="name@okhdfcbank"
+                placeholderTextColor={theme.textMuted}
+                autoCapitalize="none"
+              />
+
+              <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: 10 }]}>
+                Amount (₹)
+              </Text>
+              <TextInput
+                style={[
+                  styles.formField,
+                  { backgroundColor: theme.surfaceSecondary, color: theme.textPrimary, borderColor: theme.border }
+                ]}
+                value={transferAmount}
+                onChangeText={setTransferAmount}
+                keyboardType="decimal-pad"
+              />
+
+              <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: 10 }]}>
+                Add Note (Optional)
+              </Text>
+              <TextInput
+                style={[
+                  styles.formField,
+                  { backgroundColor: theme.surfaceSecondary, color: theme.textPrimary, borderColor: theme.border }
+                ]}
+                value={transferNote}
+                onChangeText={setTransferNote}
+                placeholder="e.g. Chai, split bill, gift"
+                placeholderTextColor={theme.textMuted}
+              />
+            </View>
+
+            <View style={styles.modalBtnRow}>
+              <Button
+                title="Cancel"
+                variant="outline"
+                size="md"
+                onPress={() => setShowTransferModal(false)}
+                style={{ flex: 1 }}
+                isDark={isDarkMode}
+              />
+              <Button
+                title="Pay Now"
+                variant="primary"
+                size="md"
+                onPress={handleExecuteTransfer}
+                style={{ flex: 1 }}
+                isDark={isDarkMode}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Receive QR Modal */}
+      <Modal visible={showReceiveQrModal} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.receiveQrCard, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.receiveTitle, { color: theme.textPrimary }]}>
+              Scan to Pay Aarav Sharma
+            </Text>
+            <Text style={[styles.receiveUpiId, { color: theme.primary }]}>
+              UPI ID: {user.upiId}
+            </Text>
+
+            <View style={styles.qrImageFrame}>
+              <Image
+                source={{
+                  uri: `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+                    `upi://pay?pa=${user.upiId}&pn=${encodeURIComponent(user.displayName)}`
+                  )}`
+                }}
+                style={styles.qrImage}
+              />
+            </View>
+
+            <Text style={[styles.receiveHint, { color: theme.textMuted }]}>
+              Accepts GPay, PhonePe, Paytm, BHIM and all banking UPI apps
+            </Text>
+
+            <Button
+              title="Close"
+              variant="outline"
+              size="md"
+              onPress={() => setShowReceiveQrModal(false)}
+              style={{ width: '100%', marginTop: 16 }}
+              isDark={isDarkMode}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Transaction Receipt Details Modal */}
+      <Modal visible={!!selectedTx} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.receiptCard, { backgroundColor: theme.surface }]}>
+            <View style={styles.receiptTop}>
+              <CheckCircle2 size={44} color="#10B981" />
+              <Text style={[styles.receiptAmount, { color: theme.textPrimary }]}>
+                {selectedTx?.amountFormatted}
+              </Text>
+              <Text style={[styles.receiptStatus, { color: '#10B981' }]}>
+                Payment Successful • Verified
+              </Text>
+            </View>
+
+            <View style={[styles.receiptDetails, { borderTopColor: theme.border, borderBottomColor: theme.border }]}>
+              <View style={styles.receiptRow}>
+                <Text style={[styles.receiptKey, { color: theme.textMuted }]}>Description</Text>
+                <Text style={[styles.receiptVal, { color: theme.textPrimary }]}>
+                  {selectedTx?.title}
+                </Text>
+              </View>
+
+              <View style={styles.receiptRow}>
+                <Text style={[styles.receiptKey, { color: theme.textMuted }]}>Date & Time</Text>
+                <Text style={[styles.receiptVal, { color: theme.textPrimary }]}>
+                  {selectedTx?.date}
+                </Text>
+              </View>
+
+              <View style={styles.receiptRow}>
+                <Text style={[styles.receiptKey, { color: theme.textMuted }]}>UPI Ref ID</Text>
+                <Text style={[styles.receiptVal, { color: theme.textPrimary }]}>
+                  {selectedTx?.refId || 'UPI/CHATINDIA/98214'}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.receiptActions}>
+              <Button
+                title="Share Receipt"
+                variant="primary"
+                size="md"
+                icon={<Share2 size={16} color="#FFFFFF" />}
+                onPress={() => selectedTx && handleShareReceipt(selectedTx)}
+                style={{ flex: 1 }}
+                isDark={isDarkMode}
+              />
+              <Button
+                title="Done"
+                variant="outline"
+                size="md"
+                onPress={() => setSelectedTx(null)}
+                style={{ flex: 1 }}
+                isDark={isDarkMode}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* QR Scanner */}
+      <Modal visible={showScanner} animationType="slide">
+        <QrCameraScanner
+          onClose={() => setShowScanner(false)}
+          onFriendAdded={() => setShowScanner(false)}
+        />
       </Modal>
     </SafeAreaView>
   );
@@ -180,8 +499,7 @@ export default function WalletScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#EDEDED'
+    flex: 1
   },
   header: {
     flexDirection: 'row',
@@ -189,255 +507,322 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#07C160'
+    borderBottomWidth: 1
   },
   backBtn: {
     flexDirection: 'row',
     alignItems: 'center'
   },
   backLabel: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600'
+    fontSize: 16,
+    fontWeight: '700'
   },
   headerTitle: {
-    color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '800'
   },
   content: {
-    flex: 1
+    padding: 16
   },
   heroCard: {
-    backgroundColor: '#07C160',
-    margin: 16,
-    borderRadius: 18,
+    borderRadius: 20,
     padding: 22,
-    shadowColor: '#07C160',
-    shadowOpacity: 0.3,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
     shadowRadius: 10,
-    elevation: 6
+    elevation: 4
   },
   heroTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginBottom: 12
   },
   heroLabel: {
-    color: '#E6F9F0',
-    fontSize: 14,
-    fontWeight: '600'
+    color: '#D1FAE5',
+    fontSize: 16,
+    fontWeight: '800'
   },
-  verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 999
+  topUpPill: {
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.35)'
   },
-  verifiedText: {
+  topUpPillText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: '700'
   },
   balanceBig: {
-    color: '#FFFFFF',
-    fontSize: 38,
+    fontSize: 34,
     fontWeight: '900',
-    marginVertical: 16
+    color: '#FFFFFF',
+    letterSpacing: -0.5,
+    marginBottom: 6
   },
-  heroActionsRow: {
+  quickActionsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8
+    justifyContent: 'space-around',
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingVertical: 18,
+    paddingHorizontal: 10,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2
   },
-  heroActionBtn: {
-    flex: 1,
-    flexDirection: 'row',
+  circleActionItem: {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginHorizontal: 4
+    minWidth: 70
   },
-  heroActionText: {
-    color: '#111827',
-    fontSize: 12.5,
+  actionCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  actionCircleLabel: {
+    fontSize: 12,
     fontWeight: '700'
   },
   sectionCard: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 14,
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB'
+    padding: 16,
+    marginBottom: 16
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontWeight: '800',
-    color: '#6B7280',
+    letterSpacing: 0.5,
     marginBottom: 12
   },
   cardItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    paddingVertical: 10,
+    borderBottomWidth: 0.5
   },
   cardIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
+    width: 38,
+    height: 38,
+    borderRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    marginRight: 12
   },
   cardInfo: {
     flex: 1
   },
   bankName: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827'
+    fontSize: 14.5,
+    fontWeight: '700'
   },
   cardDigits: {
     fontSize: 12,
-    color: '#6B7280',
     marginTop: 2
   },
   primaryTag: {
-    backgroundColor: '#DEF7EC',
-    color: '#07C160',
     fontSize: 11,
     fontWeight: '800',
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 2,
     borderRadius: 6
   },
   txHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    marginBottom: 4
   },
   txItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderColor: '#F3F4F6'
+    borderBottomWidth: 0.5
   },
   txInfo: {
     flex: 1,
     marginRight: 12
   },
   txTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#111827'
+    fontSize: 13.5,
+    fontWeight: '700',
+    marginBottom: 3
   },
   txDate: {
-    fontSize: 11,
-    color: '#9CA3AF',
-    marginTop: 2
+    fontSize: 11.5
   },
   txAmount: {
     fontSize: 15,
     fontWeight: '800'
   },
-  txPositive: {
-    color: '#07C160'
-  },
-  txNegative: {
-    color: '#111827'
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'flex-end'
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24
   },
   modalCard: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24
+    width: '100%',
+    maxWidth: 340,
+    borderRadius: 20,
+    padding: 22
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827'
+    textAlign: 'center'
   },
   modalSub: {
     fontSize: 12,
-    color: '#6B7280',
+    textAlign: 'center',
     marginTop: 4,
     marginBottom: 16
   },
   topUpInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     borderBottomWidth: 2,
-    borderColor: '#07C160',
     paddingBottom: 8,
-    marginBottom: 16
+    marginVertical: 12
   },
   currencyPrefix: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#111827',
-    marginRight: 8
+    marginRight: 6
   },
   topUpInput: {
-    flex: 1,
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '800',
-    color: '#111827'
+    minWidth: 120,
+    textAlign: 'center'
   },
   presetAmounts: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20
+    justifyContent: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    marginVertical: 14
   },
   presetPill: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8
-  },
-  presetPillActive: {
-    backgroundColor: '#DEF7EC'
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1
   },
   presetPillText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#4B5563'
+    fontSize: 12.5,
+    fontWeight: '700'
   },
-  presetPillTextActive: {
-    color: '#07C160'
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 10
   },
-  confirmTopUpBtn: {
-    backgroundColor: '#07C160',
-    paddingVertical: 14,
-    borderRadius: 12,
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 4
+  },
+  formField: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14
+  },
+  receiveQrCard: {
+    width: '100%',
+    maxWidth: 320,
+    borderRadius: 20,
+    padding: 24,
     alignItems: 'center'
   },
-  confirmTopUpText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  receiveTitle: {
+    fontSize: 17,
     fontWeight: '800'
   },
-  cancelModalBtn: {
-    marginTop: 12,
-    paddingVertical: 10,
+  receiveUpiId: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 4,
+    marginBottom: 16
+  },
+  qrImageFrame: {
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3
+  },
+  qrImage: {
+    width: 200,
+    height: 200
+  },
+  receiveHint: {
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 14
+  },
+  receiptCard: {
+    width: '100%',
+    maxWidth: 330,
+    borderRadius: 20,
+    padding: 22,
     alignItems: 'center'
   },
-  cancelModalText: {
-    color: '#6B7280',
-    fontSize: 14,
-    fontWeight: '600'
+  receiptTop: {
+    alignItems: 'center',
+    marginBottom: 16
+  },
+  receiptAmount: {
+    fontSize: 26,
+    fontWeight: '900',
+    marginTop: 8
+  },
+  receiptStatus: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 2
+  },
+  receiptDetails: {
+    width: '100%',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    paddingVertical: 12,
+    gap: 8
+  },
+  receiptRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  receiptKey: {
+    fontSize: 12
+  },
+  receiptVal: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    maxWidth: 180,
+    textAlign: 'right'
+  },
+  receiptActions: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+    marginTop: 16
   }
 });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Modal, Alert } from 'react-native';
-import { Camera, Flashlight, X, UserPlus, CheckCircle2 } from 'lucide-react-native';
+import { Camera, Flashlight, X, UserPlus, CheckCircle2, Image as ImageIcon, Zap, ChevronLeft } from 'lucide-react-native';
 import { Colors } from '../theme/tokens';
 import { api } from '../services/api';
 
@@ -28,6 +28,19 @@ export function QrCameraScanner({ onClose, onFriendAdded }: QrCameraScannerProps
     }
   };
 
+  const handleGalleryPick = () => {
+    Alert.alert(
+      'Scan from Gallery 🖼️',
+      'Select a QR code image to scan:\n• Amit Verma (@amit_v)\n• Neha Singh (@neha_s)\n• Riya Sharma (@riya_s)',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Amit Verma', onPress: () => handleSimulatedScan('user_amit') },
+        { text: 'Neha Singh', onPress: () => handleSimulatedScan('user_neha') },
+        { text: 'Riya Sharma', onPress: () => handleSimulatedScan('user_riya') }
+      ]
+    );
+  };
+
   const handleSendFriendRequest = async () => {
     if (!scannedUser) return;
     setIsSending(true);
@@ -44,21 +57,18 @@ export function QrCameraScanner({ onClose, onFriendAdded }: QrCameraScannerProps
 
   return (
     <View style={styles.container}>
-      {/* Scanner Header */}
+      {/* Scanner Header matching Screen 11 */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-          <X size={22} color="#FFFFFF" />
+        <TouchableOpacity style={styles.backBtn} onPress={onClose}>
+          <ChevronLeft size={28} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Scan QR Code</Text>
-        <TouchableOpacity
-          style={styles.torchBtn}
-          onPress={() => setTorchOn(!torchOn)}
-        >
-          <Flashlight size={20} color={torchOn ? '#F59E0B' : '#FFFFFF'} />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
       </View>
 
-      {/* Viewfinder Area */}
+      <Text style={styles.headerSubtitle}>Point your camera at a QR code</Text>
+
+      {/* Viewfinder Area with Glowing Laser Frame */}
       <View style={styles.viewfinderContainer}>
         <View style={styles.viewfinderBox}>
           {/* Corner brackets */}
@@ -70,27 +80,48 @@ export function QrCameraScanner({ onClose, onFriendAdded }: QrCameraScannerProps
           {/* Laser scanning beam */}
           <View style={styles.laserBeam} />
         </View>
-        <Text style={styles.instructionText}>
-          Align QR code within the frame to scan public profile
-        </Text>
+
+        {/* Bottom Quick Controls matching Screen 11: Gallery and Flash */}
+        <View style={styles.bottomControlsRow}>
+          <TouchableOpacity style={styles.controlCircleBtn} onPress={handleGalleryPick} activeOpacity={0.75}>
+            <ImageIcon size={22} color="#FFFFFF" />
+            <Text style={styles.controlBtnLabel}>Gallery</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.controlCircleBtn, torchOn && styles.controlCircleBtnActive]}
+            onPress={() => setTorchOn(!torchOn)}
+            activeOpacity={0.75}
+          >
+            <Zap size={22} color={torchOn ? '#F59E0B' : '#FFFFFF'} />
+            <Text style={styles.controlBtnLabel}>{torchOn ? 'Flash On' : 'Flash'}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Quick Test Bar (Allows 1-Click Scanning in Mobile Simulator) */}
+      {/* Quick Test Bar (Allows 1-Click Scanning in Simulator) */}
       <View style={styles.simulatorTestBar}>
         <Text style={styles.testBarLabel}>⚡ Instant Test Scans:</Text>
         <View style={styles.testButtonsRow}>
           <TouchableOpacity
             style={styles.testBtn}
-            onPress={() => handleSimulatedScan('user-2')}
+            onPress={() => handleSimulatedScan('user_riya')}
           >
-            <Text style={styles.testBtnText}>Scan Emma</Text>
+            <Text style={styles.testBtnText}>Scan Riya</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.testBtn}
-            onPress={() => handleSimulatedScan('user-3')}
+            onPress={() => handleSimulatedScan('user_amit')}
           >
-            <Text style={styles.testBtnText}>Scan Kevin</Text>
+            <Text style={styles.testBtnText}>Scan Amit</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.testBtn}
+            onPress={() => handleSimulatedScan('user_neha')}
+          >
+            <Text style={styles.testBtnText}>Scan Neha</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -109,7 +140,7 @@ export function QrCameraScanner({ onClose, onFriendAdded }: QrCameraScannerProps
                   style={styles.sheetAvatar}
                 />
                 <Text style={styles.sheetName}>{scannedUser?.displayName}</Text>
-                <Text style={styles.sheetId}>OmniChat ID: @{scannedUser?.username}</Text>
+                <Text style={styles.sheetId}>ChatIndia ID: @{scannedUser?.username}</Text>
                 <Text style={styles.sheetRegion}>📍 {scannedUser?.region || 'India'}</Text>
 
                 {scannedUser?.bio && (
@@ -187,14 +218,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 50,
-    paddingBottom: 20
+    paddingBottom: 8
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700'
+  },
+  headerSubtitle: {
+    color: '#9CA3AF',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 16
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   closeBtn: {
     width: 36,
@@ -221,27 +265,55 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 16,
-    position: 'relative'
+    borderColor: 'rgba(7, 193, 96, 0.4)',
+    borderRadius: 20,
+    position: 'relative',
+    backgroundColor: 'rgba(7, 193, 96, 0.03)'
   },
   corner: {
     position: 'absolute',
-    width: 24,
-    height: 24,
-    borderColor: Colors.light.primary
+    width: 28,
+    height: 28,
+    borderColor: '#07C160'
   },
-  tl: { top: -1, left: -1, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 16 },
-  tr: { top: -1, right: -1, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 16 },
-  bl: { bottom: -1, left: -1, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 16 },
-  br: { bottom: -1, right: -1, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 16 },
+  tl: { top: -2, left: -2, borderTopWidth: 4, borderLeftWidth: 4, borderTopLeftRadius: 18 },
+  tr: { top: -2, right: -2, borderTopWidth: 4, borderRightWidth: 4, borderTopRightRadius: 18 },
+  bl: { bottom: -2, left: -2, borderBottomWidth: 4, borderLeftWidth: 4, borderBottomLeftRadius: 18 },
+  br: { bottom: -2, right: -2, borderBottomWidth: 4, borderRightWidth: 4, borderBottomRightRadius: 18 },
   laserBeam: {
     position: 'absolute',
-    top: '40%',
-    left: 0,
-    right: 0,
+    top: '45%',
+    left: 4,
+    right: 4,
     height: 3,
-    backgroundColor: Colors.light.primary
+    backgroundColor: '#07C160',
+    borderRadius: 2,
+    shadowColor: '#07C160',
+    shadowOpacity: 0.8,
+    shadowRadius: 6
+  },
+  bottomControlsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 40,
+    marginTop: 36
+  },
+  controlCircleBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)'
+  },
+  controlCircleBtnActive: {
+    backgroundColor: 'rgba(245, 158, 11, 0.3)'
+  },
+  controlBtnLabel: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    marginTop: 4,
+    fontWeight: '600'
   },
   instructionText: {
     color: '#9CA3AF',

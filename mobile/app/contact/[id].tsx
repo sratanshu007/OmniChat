@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Image,
   TouchableOpacity,
-  SafeAreaView,
-  ScrollView
+  ScrollView,
+  Alert,
+  Share
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ChevronLeft,
@@ -16,14 +18,25 @@ import {
   Video,
   Camera,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Gift,
+  Share2,
+  UserX,
+  CreditCard
 } from 'lucide-react-native';
+import { Colors } from '../../src/theme/tokens';
 import { useApp } from '../../src/context/AppContext';
+import { Header } from '../../src/components/Header';
+import { Button } from '../../src/components/Button';
+import { ConfirmationModal } from '../../src/components/ConfirmationModal';
 
 export default function ContactProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { friends, startCall } = useApp();
+  const { friends, startCall, blockUser, isDarkMode } = useApp();
+  const theme = isDarkMode ? Colors.dark : Colors.light;
+
+  const [showBlockModal, setShowBlockModal] = useState(false);
 
   const contact = friends.find(f => f.id === id) || {
     id: id || 'user_priya',
@@ -36,51 +49,77 @@ export default function ContactProfileScreen() {
     phone: '+91 98200 11223'
   };
 
-  const convId = contact.id === 'user_priya' ? 'conv_priya' : contact.id === 'user_rohan' ? 'conv_rohan' : 'conv_' + contact.id;
+  const convId =
+    contact.id === 'user_priya'
+      ? 'conv_priya'
+      : contact.id === 'user_rohan'
+      ? 'conv_rohan'
+      : 'conv_' + contact.id;
+
+  const handleShareCard = async () => {
+    try {
+      await Share.share({
+        message: `Connect with ${contact.displayName} on ChatIndia! UPI: ${contact.upiId}`
+      });
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
+  const handleConfirmBlock = () => {
+    setShowBlockModal(false);
+    blockUser(contact.id);
+    Alert.alert('Contact Blocked', `${contact.displayName} has been blocked.`);
+    router.back();
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <ChevronLeft size={26} color="#111827" />
-          <Text style={styles.backLabel}>Contacts</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Contact Profile</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+      <Header
+        title="Contact Profile"
+        showBack
+        onBack={() => router.back()}
+        rightAction={
+          <TouchableOpacity onPress={handleShareCard} style={{ padding: 4 }}>
+            <Share2 size={20} color={theme.textPrimary} />
+          </TouchableOpacity>
+        }
+        isDark={isDarkMode}
+      />
 
       <ScrollView style={styles.content}>
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <View style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Image source={{ uri: contact.avatarUrl }} style={styles.avatar} />
           <View style={styles.profileInfo}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={styles.name}>{contact.displayName}</Text>
-              <ShieldCheck size={16} color="#07C160" />
+              <Text style={[styles.name, { color: theme.textPrimary }]}>{contact.displayName}</Text>
+              <ShieldCheck size={16} color={theme.primary} />
             </View>
-            <Text style={styles.wechatId}>UPI ID: {contact.upiId}</Text>
-            <Text style={styles.region}>📍 {contact.region}</Text>
+            <Text style={[styles.wechatId, { color: theme.primary }]}>UPI: {contact.upiId}</Text>
+            <Text style={[styles.region, { color: theme.textMuted }]}>📍 {contact.region}</Text>
+            {contact.phone && (
+              <Text style={[styles.phone, { color: theme.textSecondary }]}>📞 {contact.phone}</Text>
+            )}
           </View>
         </View>
 
         {/* Status / Signature */}
-        <View style={styles.groupCard}>
+        <View style={[styles.groupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.row}>
-            <Text style={styles.rowTitle}>Status</Text>
-            <Text style={styles.signatureText}>{contact.signature || 'No status set'}</Text>
+            <Text style={[styles.rowTitle, { color: theme.textSecondary }]}>About / Status</Text>
+            <Text style={[styles.signatureText, { color: theme.textPrimary }]}>
+              {contact.signature || 'No status set'}
+            </Text>
           </View>
         </View>
 
         {/* Moments preview */}
-        <View style={styles.groupCard}>
-          <TouchableOpacity
-            style={styles.row}
-            onPress={() => router.push('/moments')}
-          >
+        <View style={[styles.groupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <TouchableOpacity style={styles.row} onPress={() => router.push('/moments')}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Camera size={18} color="#3B82F6" />
-              <Text style={styles.rowTitle}>Moments & Stories</Text>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>Moments & Stories</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Image
@@ -89,86 +128,101 @@ export default function ContactProfileScreen() {
                 }}
                 style={styles.momentThumb}
               />
-              <ChevronRight size={18} color="#9CA3AF" />
+              <ChevronRight size={18} color={theme.textMuted} />
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* Actions: Send Message & Calls */}
+        {/* Actions: Send Message, Calls & Send Shagun */}
         <View style={styles.actionSection}>
-          <TouchableOpacity
-            style={styles.messageBtn}
+          <Button
+            title="Send Message"
             onPress={() => router.push(`/chat/${convId}`)}
-          >
-            <MessageSquare size={20} color="#FFFFFF" />
-            <Text style={styles.messageBtnText}>Send Message</Text>
-          </TouchableOpacity>
+            variant="primary"
+            size="lg"
+            icon={<MessageSquare size={20} color="#FFFFFF" />}
+            style={styles.actionBtn}
+            isDark={isDarkMode}
+          />
 
-          <TouchableOpacity
-            style={styles.callBtn}
-            onPress={() => startCall(contact.displayName, contact.avatarUrl, 'audio')}
-          >
-            <Phone size={20} color="#111827" />
-            <Text style={styles.callBtnText}>Voice Call</Text>
-          </TouchableOpacity>
+          <View style={styles.callRow}>
+            <Button
+              title="Voice Call"
+              onPress={() => startCall(contact.displayName, contact.avatarUrl, 'audio')}
+              variant="outline"
+              size="md"
+              icon={<Phone size={18} color={theme.primary} />}
+              style={{ flex: 1 }}
+              isDark={isDarkMode}
+            />
+            <Button
+              title="Video Call"
+              onPress={() => startCall(contact.displayName, contact.avatarUrl, 'video')}
+              variant="outline"
+              size="md"
+              icon={<Video size={18} color={theme.primary} />}
+              style={{ flex: 1 }}
+              isDark={isDarkMode}
+            />
+          </View>
 
-          <TouchableOpacity
-            style={styles.callBtn}
-            onPress={() => startCall(contact.displayName, contact.avatarUrl, 'video')}
-          >
-            <Video size={20} color="#111827" />
-            <Text style={styles.callBtnText}>Video Call</Text>
-          </TouchableOpacity>
+          <Button
+            title="Send Shagun Envelope via UPI"
+            onPress={() => router.push(`/chat/${convId}`)}
+            variant="secondary"
+            size="md"
+            icon={<Gift size={18} color={theme.primaryDark} />}
+            style={styles.actionBtn}
+            isDark={isDarkMode}
+          />
+
+          <Button
+            title="Block Contact"
+            onPress={() => setShowBlockModal(true)}
+            variant="danger"
+            size="sm"
+            icon={<UserX size={16} color="#FFFFFF" />}
+            style={{ marginTop: 12 }}
+            isDark={isDarkMode}
+          />
         </View>
       </ScrollView>
+
+      {/* Block Confirmation Modal */}
+      <ConfirmationModal
+        visible={showBlockModal}
+        title={`Block ${contact.displayName}?`}
+        message="They will no longer be able to message you or call you on ChatIndia."
+        confirmText="Block User"
+        cancelText="Cancel"
+        isDestructive
+        onConfirm={handleConfirmBlock}
+        onCancel={() => setShowBlockModal(false)}
+        isDark={isDarkMode}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#EDEDED'
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#EDEDED',
-    borderBottomWidth: 1,
-    borderColor: '#E5E7EB'
-  },
-  backBtn: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  backLabel: {
-    fontSize: 16,
-    color: '#111827',
-    fontWeight: '600'
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#111827'
+    flex: 1
   },
   content: {
-    flex: 1
+    padding: 16
   },
   profileCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderColor: '#E5E7EB',
-    alignItems: 'center'
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 12
   },
   avatar: {
     width: 68,
     height: 68,
-    borderRadius: 12,
+    borderRadius: 16,
     marginRight: 16
   },
   profileInfo: {
@@ -176,80 +230,58 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#111827'
+    fontWeight: '800'
   },
   wechatId: {
     fontSize: 13,
-    color: '#6B7280',
+    fontWeight: '700',
     marginTop: 2
   },
   region: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: 11.5,
     marginTop: 2
   },
+  phone: {
+    fontSize: 12,
+    marginTop: 2,
+    fontWeight: '500'
+  },
   groupCard: {
-    backgroundColor: '#FFFFFF',
-    marginTop: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#E5E7EB'
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 12,
+    overflow: 'hidden'
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14
+    alignItems: 'center',
+    padding: 14
   },
   rowTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111827'
+    fontSize: 14.5,
+    fontWeight: '700'
   },
   signatureText: {
     fontSize: 13,
-    color: '#6B7280',
-    maxWidth: '70%'
+    maxWidth: 200,
+    textAlign: 'right'
   },
   momentThumb: {
-    width: 38,
-    height: 38,
-    borderRadius: 6
+    width: 40,
+    height: 40,
+    borderRadius: 8
   },
   actionSection: {
-    margin: 16,
+    marginTop: 16,
+    gap: 10,
+    marginBottom: 40
+  },
+  actionBtn: {
+    width: '100%'
+  },
+  callRow: {
+    flexDirection: 'row',
     gap: 10
-  },
-  messageBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#07C160',
-    paddingVertical: 14,
-    borderRadius: 10
-  },
-  messageBtnText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800'
-  },
-  callBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E7EB'
-  },
-  callBtnText: {
-    color: '#111827',
-    fontSize: 15,
-    fontWeight: '700'
   }
 });

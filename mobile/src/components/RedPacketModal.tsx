@@ -76,7 +76,7 @@ export const RedPacketModal: React.FC<Props> = ({ visible, convId, onClose }) =>
             ))}
           </View>
 
-          <Text style={styles.walletHint}>OmniPay Wallet Balance: ₹{walletBalanceFormatted}</Text>
+          <Text style={styles.walletHint}>ChatIndia UPI Wallet Balance: ₹{walletBalanceFormatted}</Text>
 
           {/* Submit Button */}
           <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>

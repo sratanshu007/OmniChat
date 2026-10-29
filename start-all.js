@@ -6,10 +6,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log("==================================================================");
-console.log("🚀 STARTING OMNICHAT MOBILE SUPER APP BACKEND & ADMIN");
+console.log("🚀 STARTING CHATINDIA SUPER APP BACKEND & ADMIN DASHBOARD");
+console.log("🇮🇳 Brand: ChatIndia — Chat. Connect. Share.");
 console.log("==================================================================");
 console.log("📱 Mobile React Native: Run `cd mobile && npx expo start`");
-console.log("🛡️  Admin Dashboard:     http://localhost:3031");
+console.log("🛡️  Admin Operations:   http://localhost:3031");
 console.log("⚙️  Backend REST API:    http://localhost:5055/api/v1");
 console.log("📖 OpenAPI Swagger:     http://localhost:5055/api/docs");
 console.log("==================================================================");
@@ -29,7 +30,7 @@ const admin = spawn('npx', ['vite', '--port', '3031', '--host'], {
 });
 
 const cleanup = () => {
-  console.log("\n🛑 Stopping OmniChat backend services...");
+  console.log("\n🛑 Stopping ChatIndia services...");
   backend.kill();
   admin.kill();
   process.exit();

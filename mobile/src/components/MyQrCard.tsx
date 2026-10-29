@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Share } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Share, Alert } from 'react-native';
 import { Colors } from '../theme/tokens';
-import { Share2, RefreshCw, Download } from 'lucide-react-native';
+import { Share2, Download, Copy, Check } from 'lucide-react-native';
 
 interface MyQrCardProps {
   user: {
@@ -15,55 +15,84 @@ interface MyQrCardProps {
 }
 
 export function MyQrCard({ user, qrToken, onRefresh }: MyQrCardProps) {
+  const [copied, setCopied] = useState(false);
+
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Add me on OmniChat! My username is @${user.username}. Scan my QR code identity: ${qrToken}`
+        message: `Add me on ChatIndia! My username is @${user.username}. Scan my QR code identity: https://chatindia.app/u/${user.username}`
       });
     } catch (e) {
       console.warn(e);
     }
   };
 
+  const handleCopyLink = () => {
+    setCopied(true);
+    Alert.alert('Link Copied! 📋', `chatindia.app/u/${user.username} copied to clipboard.`);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveImage = () => {
+    Alert.alert('QR Saved! 🖼️', 'ChatIndia QR code image has been saved to your photo gallery.');
+  };
+
   return (
     <View style={styles.cardContainer}>
-      {/* User Header */}
-      <View style={styles.profileHeader}>
+      {/* Profile Header matching Screen 12 */}
+      <View style={styles.avatarWrapper}>
         <Image
-          source={{ uri: user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200' }}
+          source={{
+            uri:
+              user.avatarUrl ||
+              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=240'
+          }}
           style={styles.avatar}
         />
-        <View style={styles.profileInfo}>
-          <Text style={styles.displayName}>{user.displayName}</Text>
-          <Text style={styles.username}>OmniChat ID: @{user.username}</Text>
-          <Text style={styles.region}>📍 {user.region || 'India'}</Text>
-        </View>
       </View>
 
-      {/* QR Code Graphic Box */}
+      <Text style={styles.displayName}>{user.displayName}</Text>
+      <Text style={styles.username}>@{user.username}</Text>
+
+      {/* QR Code Container */}
       <View style={styles.qrBox}>
-        {/* Crisp deterministic SVG/styled grid */}
-        <View style={styles.qrMatrixContainer}>
-          <Image
-            source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrToken || user.username)}` }}
-            style={styles.qrImage}
-          />
-        </View>
-        <Text style={styles.scanNotice}>Scan this QR code to add me as a friend on OmniChat</Text>
+        <Image
+          source={{
+            uri: `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=1&data=${encodeURIComponent(
+              `chatindia://profile/${user.username}?token=${qrToken || 'rohan_secure_token'}`
+            )}`
+          }}
+          style={styles.qrImage}
+        />
       </View>
 
-      {/* Action Buttons */}
-      <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
-          <Share2 size={16} color={Colors.light.primary} />
-          <Text style={styles.actionText}>Share Card</Text>
+      {/* Primary Green Action Button: Share QR */}
+      <TouchableOpacity style={styles.primaryShareBtn} onPress={handleShare} activeOpacity={0.85}>
+        <Share2 size={18} color="#FFFFFF" />
+        <Text style={styles.primaryShareText}>Share QR</Text>
+      </TouchableOpacity>
+
+      {/* Secondary Horizontal Buttons: Save Image & Copy Link */}
+      <View style={styles.secondaryRow}>
+        <TouchableOpacity style={styles.secondaryBtn} onPress={handleSaveImage} activeOpacity={0.7}>
+          <Download size={16} color="#374151" />
+          <Text style={styles.secondaryBtnText}>Save Image</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionBtn} onPress={onRefresh}>
-          <RefreshCw size={16} color={Colors.light.primary} />
-          <Text style={styles.actionText}>Reset Code</Text>
+        <TouchableOpacity style={styles.secondaryBtn} onPress={handleCopyLink} activeOpacity={0.7}>
+          {copied ? (
+            <Check size={16} color="#07C160" />
+          ) : (
+            <Copy size={16} color="#374151" />
+          )}
+          <Text style={styles.secondaryBtnText}>{copied ? 'Copied!' : 'Copy Link'}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Bottom Subtitle matching Screen 12 */}
+      <Text style={styles.scanNotice}>
+        Scan my QR code to connect with me on ChatIndia
+      </Text>
     </View>
   );
 }
@@ -71,87 +100,103 @@ export function MyQrCard({ user, qrToken, onRefresh }: MyQrCardProps) {
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 24,
+    paddingVertical: 28,
+    paddingHorizontal: 22,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowRadius: 20,
+    elevation: 6,
     alignItems: 'center',
-    marginHorizontal: 20
+    marginHorizontal: 16
   },
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 20
+  avatarWrapper: {
+    marginBottom: 10,
+    shadowColor: '#07C160',
+    shadowOpacity: 0.2,
+    shadowRadius: 10
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    marginRight: 14
-  },
-  profileInfo: {
-    flex: 1
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 2.5,
+    borderColor: '#07C160'
   },
   displayName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
-    color: '#111827'
+    color: '#111827',
+    marginBottom: 2
   },
   username: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B7280',
-    marginTop: 2
-  },
-  region: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 2
+    fontWeight: '600',
+    marginBottom: 16
   },
   qrBox: {
-    padding: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#FFFFFF',
+    padding: 12,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E5E7EB',
-    alignItems: 'center'
-  },
-  qrMatrixContainer: {
-    width: 220,
-    height: 220,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    overflow: 'hidden'
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20
   },
   qrImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10
+  },
+  primaryShareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#07C160',
     width: '100%',
-    height: '100%'
+    paddingVertical: 14,
+    borderRadius: 14,
+    gap: 8,
+    marginBottom: 12,
+    shadowColor: '#07C160',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 3
+  },
+  primaryShareText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700'
+  },
+  secondaryRow: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+    marginBottom: 16
+  },
+  secondaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    gap: 6
+  },
+  secondaryBtnText: {
+    color: '#374151',
+    fontSize: 13,
+    fontWeight: '600'
   },
   scanNotice: {
     fontSize: 12,
-    color: '#6B7280',
-    marginTop: 12,
-    textAlign: 'center'
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 20
-  },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.light.primaryLight,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10
-  },
-  actionText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.light.primary
+    color: '#9CA3AF',
+    textAlign: 'center',
+    fontWeight: '500'
   }
 });

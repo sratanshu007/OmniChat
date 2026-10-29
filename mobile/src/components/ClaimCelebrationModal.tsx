@@ -45,7 +45,7 @@ export const ClaimCelebrationModal: React.FC<Props> = ({ visible, message, onClo
           ) : (
             <View style={styles.claimedContainer}>
               <Text style={styles.claimedAmount}>₹{amountFormatted}</Text>
-              <Text style={styles.claimedStatus}>Added directly to your OmniPay Wallet! ✅</Text>
+              <Text style={styles.claimedStatus}>Added directly to your ChatIndia UPI Wallet! ✅</Text>
               <Text style={styles.walletCurrent}>Current Wallet: ₹{walletBalanceFormatted}</Text>
             </View>
           )}

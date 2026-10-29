@@ -10,33 +10,69 @@ const BASE_URL = Platform.select({
 class ApiService {
   private token: string | null = null;
 
-  setToken(t: string) {
+  setToken(t: string | null) {
     this.token = t;
+  }
+
+  getToken(): string | null {
+    return this.token;
   }
 
   async request(endpoint: string, options: RequestInit = {}) {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string> || {})
+      ...((options.headers as Record<string, string>) || {})
     };
 
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers
-    });
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        ...options,
+        headers
+      });
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'Request failed');
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || data.message || `Request failed with status ${response.status}`);
+      }
+      return data;
+    } catch (e: any) {
+      // In mobile environment when backend is starting or offline, provide descriptive error
+      throw new Error(e.message || 'Network connection failed');
     }
-    return data;
   }
 
-  // QR Token Endpoints
+  // --- Auth Endpoints ---
+  async requestOtp(phoneNumber: string) {
+    return this.request('/auth/request-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber })
+    });
+  }
+
+  async verifyOtpAndLogin(phoneNumber: string, code: string) {
+    return this.request('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber, code })
+    });
+  }
+
+  async registerUser(userData: {
+    phoneNumber: string;
+    displayName: string;
+    username: string;
+    avatarUrl?: string;
+  }) {
+    return this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  }
+
+  // --- QR Token Endpoints ---
   async generateMyQrToken() {
     return this.request('/qr-tokens', { method: 'POST' });
   }
@@ -48,7 +84,7 @@ class ApiService {
     });
   }
 
-  // Friends Endpoints
+  // --- Friends Endpoints ---
   async sendFriendRequest(recipientId: string, message?: string) {
     return this.request('/friend-requests', {
       method: 'POST',
@@ -64,9 +100,24 @@ class ApiService {
     return this.request(`/friend-requests/${requestId}/accept`, { method: 'POST' });
   }
 
-  // Conversations Endpoints
+  async rejectFriendRequest(requestId: string) {
+    return this.request(`/friend-requests/${requestId}/reject`, { method: 'POST' });
+  }
+
+  async getFriendsList() {
+    return this.request('/friends');
+  }
+
+  // --- Conversations & Messages ---
   async getConversations() {
     return this.request('/conversations');
+  }
+
+  async createConversation(participantIds: string[], isGroup = false, title?: string) {
+    return this.request('/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ participantIds, isGroup, title })
+    });
   }
 
   async getMessages(conversationId: string) {
@@ -80,7 +131,7 @@ class ApiService {
     });
   }
 
-  // Wallet Endpoints
+  // --- Wallet & UPI Payments ---
   async getWallet() {
     return this.request('/wallet');
   }
@@ -99,7 +150,14 @@ class ApiService {
     });
   }
 
-  // Moments Endpoints
+  async transferUpi(recipientUpiId: string, amountCents: number, note?: string) {
+    return this.request('/payments/transfer', {
+      method: 'POST',
+      body: JSON.stringify({ recipientUpiId, amountCents, note })
+    });
+  }
+
+  // --- Moments Endpoints ---
   async getMomentsFeed() {
     return this.request('/moments/feed');
   }
@@ -113,6 +171,18 @@ class ApiService {
 
   async toggleLikePost(postId: string) {
     return this.request(`/posts/${postId}/likes`, { method: 'POST' });
+  }
+
+  async addPostComment(postId: string, text: string) {
+    return this.request(`/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ text })
+    });
+  }
+
+  // --- Services / Mini Programs ---
+  async getServices() {
+    return this.request('/services');
   }
 }
 
